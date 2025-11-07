@@ -1,5 +1,9 @@
 "Prosty symulator inwestowania - work still in progress"
 
+# Biblioteki 
+Następujące biblioteki są wymagane do uruchomienia projektu
+*  "pyside6>=6.10.0"
+
 # Środowisko
 To set up the env do the following:
 1. Install uv using guide `https://docs.astral.sh/uv/getting-started/installation/`
