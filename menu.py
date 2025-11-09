@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QLabel
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout
 from PySide6.QtGui import QPixmap
 import sys
 
@@ -6,20 +6,30 @@ class MenuWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Menu")
-        self.setGeometry(300, 200, 600, 400)
+        self.setGeometry(100, 100, 1366, 768)
+        self.setFixedSize(1366, 768)
 
         # --- Obraz tła ---
         self.background = QLabel(self)
+        self.setStyleSheet("background-color: purple;")
+
+        # --- Menu Box ---
+        self.menu_box = QGroupBox(self)
+        self.menu_box.setStyleSheet("QGroupBox { border: none; }")
+        self.menu_box.setGeometry(50, 30, 800, 800)
+
+        # --- obraz menu ---
+        menu_img = QLabel("START", self.menu_box)
+        menu_img.setGeometry(50, 50, 300, 300)
         pixmap = QPixmap("program_files/menu_background.jpg")
-        self.background.setPixmap(pixmap)
-        self.background.setScaledContents(True)
-        self.background.resize(self.size())
+        scaled_pixmap = pixmap.scaled(menu_img.width(), menu_img.height())
+        menu_img.setPixmap(scaled_pixmap)
 
         # --- Przycisk START ---
-        self.btn_start = QPushButton("START", self)
-        self.btn_start.setGeometry(250, 150, 120, 40)
-        self.btn_start.clicked.connect(self.start_game)
-        self.btn_start.setStyleSheet("""
+        btn_start = QPushButton("START", self.menu_box)
+        btn_start.setGeometry(150, 360, 120, 40)
+        btn_start.clicked.connect(self.start_game, self.menu_box)
+        btn_start.setStyleSheet("""
             QPushButton {
                 background-color: darkorange;
                 color: white;
@@ -36,10 +46,10 @@ class MenuWindow(QWidget):
         """)
 
         # --- Przycisk USTAWIENIA ---
-        self.btn_settings = QPushButton("USTAWIENIA", self)
-        self.btn_settings.setGeometry(250, 200, 120, 40)
-        self.btn_settings.clicked.connect(self.open_settings)
-        self.btn_settings.setStyleSheet("""
+        btn_settings = QPushButton("USTAWIENIA", self.menu_box)
+        btn_settings.setGeometry(150, 410, 120, 40)
+        btn_settings.clicked.connect(self.open_settings)
+        btn_settings.setStyleSheet("""
             QPushButton {
                 background-color: darkorange;
                 color: white;
@@ -56,10 +66,10 @@ class MenuWindow(QWidget):
         """)
 
         # --- Przycisk WYJŚCIE ---
-        self.btn_exit = QPushButton("WYJŚCIE", self)
-        self.btn_exit.setGeometry(250, 250, 120, 40)
-        self.btn_exit.clicked.connect(self.close)
-        self.btn_exit.setStyleSheet("""
+        btn_exit = QPushButton("WYJŚCIE", self.menu_box)
+        btn_exit.setGeometry(150, 460, 120, 40)
+        btn_exit.clicked.connect(self.close)
+        btn_exit.setStyleSheet("""
             QPushButton {
                 background-color: darkorange;
                 color: white;

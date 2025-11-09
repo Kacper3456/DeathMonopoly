@@ -7,7 +7,8 @@ class SettingsWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Okno ustawień")
-        self.setGeometry(300, 200, 600, 400)
+        self.setGeometry(100, 100, 600, 400)
+        self.setFixedSize(1366,768)
 
         # --- Tło gry ---
         self.background = QLabel(self)
