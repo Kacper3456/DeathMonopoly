@@ -1,38 +1,76 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout
-from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, 
+                             QGroupBox, QStackedWidget, QMainWindow)
+from PySide6.QtGui import QPixmap, QIcon
 import sys
 
-class MenuWindow(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Menu")
+        self.setWindowTitle("Game")
         self.setGeometry(100, 100, 1366, 768)
         self.setFixedSize(1366, 768)
+        
+        # --- tworzenie stosu ---
+        self.stacked_widget = QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
+        
+        # --- tworzenie stron ---
+        self.menu_page = MenuPage(self)
+        self.game_page = GamePage(self)
+        self.settings_page = SettingsPage(self)
+        
+        # --- dodajemy strony do stosu ---
+        self.stacked_widget.addWidget(self.menu_page)
+        self.stacked_widget.addWidget(self.game_page)
+        self.stacked_widget.addWidget(self.settings_page)
+        
+        # --- zaleności ---
+        self.menu_page.main_window = self
+        self.game_page.main_window = self
+        self.settings_page.main_window = self
+        
+        self.show_menu()
+    
+    def show_menu(self):
+        self.stacked_widget.setCurrentWidget(self.menu_page)
+    
+    def show_game(self):
+        self.stacked_widget.setCurrentWidget(self.game_page)
+    
+    def show_settings(self):
+        self.stacked_widget.setCurrentWidget(self.settings_page)
 
+
+class MenuPage(QWidget):
+    def __init__(self, main_window: MainWindow):
+        super().__init__()
+        self.main_window = main_window
+        
         # --- Obraz tła ---
         self.background = QLabel(self)
         self.setStyleSheet("background-color: purple;")
-
+        
         # --- Menu Box ---
         self.menu_box = QGroupBox(self)
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
         self.menu_box.setGeometry(50, 30, 800, 800)
-
+        
         # --- obraz menu ---
         menu_img = QLabel("START", self.menu_box)
         menu_img.setGeometry(50, 50, 300, 300)
         pixmap = QPixmap("program_files/menu_background.jpg")
         scaled_pixmap = pixmap.scaled(menu_img.width(), menu_img.height())
         menu_img.setPixmap(scaled_pixmap)
-
+        
         # --- Przycisk START ---
         btn_start = QPushButton("START", self.menu_box)
-        btn_start.setGeometry(150, 360, 120, 40)
-        btn_start.clicked.connect(self.start_game, self.menu_box)
+        btn_start.setGeometry(150, 360, 120, 60)
+        btn_start.clicked.connect(self.main_window.show_game)
         btn_start.setStyleSheet("""
             QPushButton {
-                background-color: darkorange;
-                color: white;
+                background-image: url(images/buttons/start-button.png);
+                background-repeat: no-repeat;
+                background-position: center;
                 border-radius: 10px;
                 font-size: 16px;
                 font-weight: bold;
@@ -40,15 +78,12 @@ class MenuWindow(QWidget):
             QPushButton:hover {
                 background-color: orange;
             }
-            QPushButton:pressed {
-                background-color: orange;
-            }
         """)
-
+        
         # --- Przycisk USTAWIENIA ---
         btn_settings = QPushButton("USTAWIENIA", self.menu_box)
         btn_settings.setGeometry(150, 410, 120, 40)
-        btn_settings.clicked.connect(self.open_settings)
+        btn_settings.clicked.connect(self.main_window.show_settings)
         btn_settings.setStyleSheet("""
             QPushButton {
                 background-color: darkorange;
@@ -64,11 +99,11 @@ class MenuWindow(QWidget):
                 background-color: orange;
             }
         """)
-
+        
         # --- Przycisk WYJŚCIE ---
         btn_exit = QPushButton("WYJŚCIE", self.menu_box)
         btn_exit.setGeometry(150, 460, 120, 40)
-        btn_exit.clicked.connect(self.close)
+        btn_exit.clicked.connect(QApplication.instance().quit)
         btn_exit.setStyleSheet("""
             QPushButton {
                 background-color: darkorange;
@@ -84,19 +119,69 @@ class MenuWindow(QWidget):
                 background-color: orange;
             }
         """)
-
+        
     def resizeEvent(self, event):
         self.background.resize(self.size())
 
-    def start_game(self):
-            from game import GameWindow
-            self.game_window = GameWindow()
-            self.game_window.show()
-            self.close()
 
-    def open_settings(self):
-        from settings import SettingsWindow
-        self.game_window = SettingsWindow()
-        self.game_window.show()
-        self.close()
+class GamePage(QWidget):
+    def __init__(self, main_window):
+        super().__init__()
+        self.main_window = main_window
+        
+        # Add your game content here
+        label = QLabel("Game Screen", self)
+        label.setStyleSheet("font-size: 24px; color: white;")
+        label.setGeometry(100, 100, 300, 50)
+        
+        # Back button
+        btn_back = QPushButton("POWRÓT DO MENU", self)
+        btn_back.setGeometry(100, 200, 150, 40)
+        btn_back.clicked.connect(self.main_window.show_menu)
+        btn_back.setStyleSheet("""
+            QPushButton {
+                background-color: darkorange;
+                color: white;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: orange;
+            }
+        """)
 
+
+class SettingsPage(QWidget):
+    def __init__(self, main_window):
+        super().__init__()
+        self.main_window = main_window
+        
+        # Add your settings content here
+        label = QLabel("Ustawienia", self)
+        label.setStyleSheet("font-size: 24px; color: white;")
+        label.setGeometry(100, 100, 300, 50)
+        
+        # Back button
+        btn_back = QPushButton("POWRÓT DO MENU", self)
+        btn_back.setGeometry(100, 200, 150, 40)
+        btn_back.clicked.connect(self.main_window.show_menu)
+        btn_back.setStyleSheet("""
+            QPushButton {
+                background-color: darkorange;
+                color: white;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: orange;
+            }
+        """)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
