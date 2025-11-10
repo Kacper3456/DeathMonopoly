@@ -6,8 +6,8 @@ import sys
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Game")
-        self.setGeometry(100, 100, 1366, 768)
+        # self.setWindowTitle("Game")
+        self.setGeometry(30, 50, 1366, 768)
         self.setFixedSize(1366, 768)
         
         # --- tworzenie stosu ---
@@ -48,52 +48,52 @@ class MenuPage(QWidget):
         
         # --- Obraz tła ---
         self.background = QLabel(self)
-        self.setStyleSheet("background-color: purple;")
+        self.background.setGeometry(0,0, self.width(), self.height())
+        pixmap = QPixmap("program_files/stars.png")
+        self.background.setScaledContents(True)  
+        self.background.setPixmap(pixmap)
+        self.background.lower()  
         
         # --- Menu Box ---
         self.menu_box = QGroupBox(self)
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
         self.menu_box.setGeometry(50, 30, 800, 800)
         
-        # --- obraz menu ---
-        menu_img = QLabel("START", self.menu_box)
-        menu_img.setGeometry(50, 50, 300, 300)
-        pixmap = QPixmap("program_files/menu_background.jpg")
-        scaled_pixmap = pixmap.scaled(menu_img.width(), menu_img.height())
-        menu_img.setPixmap(scaled_pixmap)
+        # --- obraz logo ---
+        logo_img = QLabel("START", self.menu_box)
+        logo_img.setGeometry(450, 50, 350, 300)
+        pixmap = QPixmap("program_files/logo.jpg")
+        scaled_pixmap = pixmap.scaled(logo_img.width(), logo_img.height())
+        logo_img.setPixmap(scaled_pixmap)
         
         # --- Przycisk START ---
-        btn_start = QPushButton("START", self.menu_box)
-        btn_start.setGeometry(150, 360, 120, 60)
+        btn_start = QPushButton(self.menu_box)
+        btn_start.setGeometry(500, 390, 270, 62)
+
         btn_start.clicked.connect(self.main_window.show_game)
         btn_start.setStyleSheet("""
             QPushButton {
                 background-image: url(images/buttons/start-button.png);
-                background-repeat: no-repeat;
                 background-position: center;
                 border-radius: 10px;
-                font-size: 16px;
-                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: orange;
+                background-color: rgba(255, 215, 0, 0.7);
             }
         """)
         
         # --- Przycisk USTAWIENIA ---
-        btn_settings = QPushButton("USTAWIENIA", self.menu_box)
-        btn_settings.setGeometry(150, 410, 120, 40)
+        btn_settings = QPushButton(self.menu_box)
+        btn_settings.setGeometry(500, 467, 270, 62)
         btn_settings.clicked.connect(self.main_window.show_settings)
         btn_settings.setStyleSheet("""
             QPushButton {
-                background-color: darkorange;
-                color: white;
+                background-image: url(images/buttons/settings-button.png);
+                background-position: center;
                 border-radius: 10px;
-                font-size: 16px;
-                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: orange;
+                background-color: rgba(255, 215, 0, 0.7);
             }
             QPushButton:pressed {
                 background-color: orange;
@@ -101,19 +101,17 @@ class MenuPage(QWidget):
         """)
         
         # --- Przycisk WYJŚCIE ---
-        btn_exit = QPushButton("WYJŚCIE", self.menu_box)
-        btn_exit.setGeometry(150, 460, 120, 40)
+        btn_exit = QPushButton(self.menu_box)
+        btn_exit.setGeometry(500, 544, 270, 62)
         btn_exit.clicked.connect(QApplication.instance().quit)
         btn_exit.setStyleSheet("""
             QPushButton {
-                background-color: darkorange;
-                color: white;
+                background-image: url(images/buttons/quit-button.png);
+                background-position: center;
                 border-radius: 10px;
-                font-size: 16px;
-                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: orange;
+                background-color: rgba(255, 215, 0, 0.7);
             }
             QPushButton:pressed {
                 background-color: orange;
