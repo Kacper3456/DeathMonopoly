@@ -1,7 +1,11 @@
 from openai import OpenAI
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 client = OpenAI(
-  api_key="key"
+  api_key=os.getenv("OPENAI_API_KEY")
 )
 
 personalities = {
@@ -40,5 +44,6 @@ def ask_bot(name, personality):
         print(f"Q: {q}")
         print(f"A: {response.output_text}\n")
 
-# Ask both bots
-ask_bot("Wagrio", personalities["Wagrio"])
+
+if __name__ == "__main__":
+    ask_bot("Wagrio", personalities["Wagrio"])
