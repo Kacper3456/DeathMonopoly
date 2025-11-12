@@ -60,6 +60,21 @@ class MenuPage(QWidget):
         button_width = 270
         button_height = 62
         button_padding = 15
+        #jeden styl dla wszystkich przycisków
+        def apply_button_style(button, image_path):
+            button.setStyleSheet(f"""
+                QPushButton {{
+                    background-image: url({image_path});
+                    background-position: center;
+                    border-radius: 10px;
+                }}
+                QPushButton:hover {{
+                    background-color: rgba(255, 215, 0, 0.7);
+                }}
+                QPushButton:pressed {{
+                    background-color: orange;
+                }}
+            """)
         
         # --- Obraz tła ---
         self.background = QLabel(self)
@@ -86,55 +101,24 @@ class MenuPage(QWidget):
         btn_start.setGeometry(buttons_x_start, buttons_y_start, button_width, button_height)
 
         btn_start.clicked.connect(self.main_window.show_game)
-        btn_start.setStyleSheet("""
-            QPushButton {
-                background-image: url(images/buttons/start-button.png);
-                background-position: center;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 215, 0, 0.7);
-            }
-        """)
+        apply_button_style(btn_start, "images/buttons/start-button.png")
         
         # --- Przycisk USTAWIENIA ---
         btn_settings = QPushButton(self.menu_box)
         btn_settings.setGeometry(buttons_x_start, buttons_y_start + button_height + button_padding, button_width, button_height)
         btn_settings.clicked.connect(self.main_window.show_settings)
-        btn_settings.setStyleSheet("""
-            QPushButton {
-                background-image: url(images/buttons/settings-button.png);
-                background-position: center;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 215, 0, 0.7);
-            }
-            QPushButton:pressed {
-                background-color: orange;
-            }
-        """)
+        apply_button_style(btn_settings, "images/buttons/settings-button.png")
         
         # --- Przycisk WYJŚCIE ---
         btn_exit = QPushButton(self.menu_box)
         btn_exit.setGeometry(buttons_x_start, buttons_y_start + 2 * button_height + 2 * button_padding, button_width, button_height)
         btn_exit.clicked.connect(QApplication.instance().quit)
-        btn_exit.setStyleSheet("""
-            QPushButton {
-                background-image: url(images/buttons/quit-button.png);
-                background-position: center;
-                border-radius: 10px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 215, 0, 0.7);
-            }
-            QPushButton:pressed {
-                background-color: orange;
-            }
-        """)
+        apply_button_style(btn_exit, "images/buttons/quit-button.png")
+        
         
     def resizeEvent(self, event):
         self.background.resize(self.size())
+        
 
 
 class GamePage(QWidget):
