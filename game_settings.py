@@ -97,7 +97,7 @@ class SettingsPage(QWidget):
         
         # --- container widget ---
         self.difficulty_container = QWidget(self)
-        self.difficulty_container.setGeometry(350, 315, 600, 120)
+        self.difficulty_container.setGeometry((screen_width-600)//2, 315, 600, 120)
         
         # --- layout ---
         difficulty_layout = QHBoxLayout(self.difficulty_container)
