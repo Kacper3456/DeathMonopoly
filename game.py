@@ -1,32 +1,29 @@
 # game.py
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel
-from PySide6.QtGui import QPixmap
-from menu import MainWindow  # importujemy, by móc wrócić
 
-class GameWindow(QWidget):
-    def __init__(self):
+class GamePage(QWidget):
+    def __init__(self, main_window):
         super().__init__()
-        self.setWindowTitle("Okno Gry")
-        self.setGeometry(300, 200, 600, 400)
+        self.main_window = main_window
 
-        # --- Tło gry ---
-        self.background = QLabel(self)
-        pixmap = QPixmap("program_files/game_background.jpg")
-        self.background.setPixmap(pixmap)
-        self.background.setScaledContents(True)
-        self.background.resize(self.size())
+        # Add your game content here
+        label = QLabel("Game Screen", self)
+        label.setStyleSheet("font-size: 24px; color: white;")
+        label.setGeometry(100, 100, 300, 50)
 
-        # --- Przycisk powrotu do menu ---
-        self.btn_back = QPushButton("WRÓĆ DO MENU", self)
-        self.btn_back.setGeometry(230, 300, 150, 40)
-        self.btn_back.clicked.connect(self.back_to_menu)
-
-
-    def resizeEvent(self, event):
-        self.background.resize(self.size())
-
-    def back_to_menu(self):
-        # Wracamy do menu
-        self.menu = MainWindow()
-        self.menu.show()
-        self.close()
+        # Back button
+        btn_back = QPushButton("POWRÓT DO MENU", self)
+        btn_back.setGeometry(100, 200, 150, 40)
+        btn_back.clicked.connect(self.main_window.show_menu)
+        btn_back.setStyleSheet("""
+            QPushButton {
+                background-color: darkorange;
+                color: white;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: orange;
+            }
+        """)
