@@ -38,7 +38,7 @@ class SettingsPage(QWidget):
         y = (screen_height - panel_height) // 2
         self.sliders_panel.setGeometry(x, y, panel_width, panel_height)
         
-        # --- title ---
+        # --- tytuł ---
         title_img = QLabel(self)
         title_img.setGeometry((screen_width-270)//2, 50, 270, 62)
         pixmap = QPixmap("images/buttons/settings-button.png")
@@ -46,58 +46,78 @@ class SettingsPage(QWidget):
         title_img.setPixmap(scaled_pixmap)
         
          # --- współrzędne dla sliderów ---
-        slider_x_start = 600
+        slider_x_start = 650
         slider_y_start = 150
         slider_width = 270
         slider_height = 62
-        slider_padding = 15
         
-        # --- music slider ---
+        # --- MUSIC SLIDER ---
         self.music_label = QLabel(self)
         self.music_label.setGeometry(350, 160, 160, 43)
         pixmap = QPixmap("images/options/music.png")
         scaled_pixmap = pixmap.scaled(self.music_label.width(), self.music_label.height())
         self.music_label.setPixmap(scaled_pixmap)
     
+        def apply_slider_style(slider):
+            slider.setStyleSheet(f"""
+                QSlider::groove:horizontal {{
+                background: #555;
+                height: 20px;
+                width: 250px;
+                border-radius: 4px;
+            }}
+            QSlider::handle:horizontal {{
+                background: darkpurple;
+                width: 25px;
+                margin: -5px 0;
+                border-radius: 9px;
+            }}
+            QSlider::handle:horizontal:hover {{
+                background: rgba(240, 178, 39, 200);
+            }}
+            """)
+            
         self.music_slider = QSlider(Qt.Horizontal, self)
         self.music_slider.setGeometry(slider_x_start, slider_y_start, slider_width, slider_height)
         self.music_slider.setMinimum(0)
         self.music_slider.setMaximum(100)
         self.music_slider.setValue(80)
-        self.music_slider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                background: #555;
-                height: 20px;
-                width: 250px;
-                border-radius: 4px;
-            }
-            QSlider::handle:horizontal {
-                background: darkpurple;
-                width: 25px;
-                margin: -5px 0;
-                border-radius: 9px;
-            }
-            QSlider::handle:horizontal:hover {
-                background: rgba(240, 178, 39, 200);
-            }
-        """)
+        apply_slider_style(self.music_slider)
         
-        self.music_value_label = QLabel("80%", self)
-        self.music_value_label.setStyleSheet("font-size: 24px; color: rgba(240, 178, 39, 200);")
-        self.music_value_label.setGeometry(950, 165, 70, 30)
-        self.music_slider.valueChanged.connect(lambda v: self.music_value_label.setText(f"{v}%"))
         
-        # --- difficulty level option ---
+        # zmieniający się procent głosności, ale mi się nie podoba czcionka 
+        # self.music_value_label = QLabel("80%", self)
+        # self.music_value_label.setStyleSheet("font-size: 24px; color: rgba(240, 178, 39, 200);")
+        # self.music_value_label.setGeometry(950, 165, 70, 30)
+        # self.music_slider.valueChanged.connect(lambda v: self.music_value_label.setText(f"{v}%"))
+        
+         # --- BRIGHTNESS SLIDER ---
+        self.brightness_label = QLabel(self)
+        self.brightness_label.setGeometry(350, 270, 263, 43)
+        pixmap = QPixmap("images/options/brightness.png")
+        scaled_pixmap = pixmap.scaled(self.brightness_label.width(), self.brightness_label.height())
+        self.brightness_label.setPixmap(scaled_pixmap)
+        
+        self.brightness_slider = QSlider(Qt.Horizontal, self)
+        self.brightness_slider.setGeometry(slider_x_start, slider_y_start+110, slider_width, slider_height)
+        self.brightness_slider.setMinimum(50)
+        self.brightness_slider.setMaximum(100)
+        self.brightness_slider.setValue(100)
+        self.brightness_slider.valueChanged.connect(self.update_brightness)
+        apply_slider_style(self.brightness_slider)
+        
+        
+        # --- DIFFICULTY LEVEL ---
         
         self.difficulty_label = QLabel(self)
-        self.difficulty_label.setGeometry((screen_width-395)//2, 250, 400, 47)
+        self.difficulty_label.setGeometry((screen_width-395)//2, 370, 400, 47)
         pixmap = QPixmap("images/options/select_difficulty.png")
         scaled_pixmap = pixmap.scaled(self.difficulty_label.width(), self.difficulty_label.height())
         self.difficulty_label.setPixmap(scaled_pixmap)
         
         # --- container widget ---
         self.difficulty_container = QWidget(self)
-        self.difficulty_container.setGeometry((screen_width-600)//2, 315, 600, 120)
+        self.difficulty_container.setGeometry((screen_width-600)//2, 430, 600, 120)
         
         # --- layout ---
         difficulty_layout = QHBoxLayout(self.difficulty_container)
@@ -154,32 +174,8 @@ class SettingsPage(QWidget):
         self.difficulty_group.addButton(self.radio_hard, 3) 
 
         
-         # Brightness slider
-        self.brightnessSlider = QSlider(Qt.Horizontal, self)
-        self.brightnessSlider.setGeometry(slider_x_start, slider_y_start+300, slider_width, slider_height)
-        self.brightnessSlider.setMinimum(50)
-        self.brightnessSlider.setMaximum(100)
-        self.brightnessSlider.setValue(100)
-        self.brightnessSlider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                background: #555;
-                height: 20px;
-                width: 250px;
-                border-radius: 4px;
-            }
-            QSlider::handle:horizontal {
-                background: darkpurple;
-                width: 25px;
-                margin: -5px 0;
-                border-radius: 9px;
-            }
-            QSlider::handle:horizontal:hover {
-                background: rgba(240, 178, 39, 200);
-            }""")
-        self.brightnessSlider.valueChanged.connect(self.update_brightness)
         
-        
-        # Back button
+        # --- Back button ---
         btn_back = QPushButton(self)
         btn_back.setGeometry((screen_width-215)//2, 600, 215, 41)
         btn_back.clicked.connect(self.main_window.show_menu)
