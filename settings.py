@@ -63,9 +63,9 @@ class SettingsPage(QWidget):
         # Brightness slider
         self.brightnessSlider = QSlider(Qt.Horizontal, self)
         self.brightnessSlider.setGeometry(100, 260, 200, 30)
-        self.brightnessSlider.setMinimum(0)
+        self.brightnessSlider.setMinimum(50)
         self.brightnessSlider.setMaximum(100)
-        self.brightnessSlider.setValue(50)
+        self.brightnessSlider.setValue(100)
         self.brightnessSlider.setStyleSheet(Slider_style)
         self.brightnessSlider.valueChanged.connect(self.update_brightness)
 
@@ -74,7 +74,7 @@ class SettingsPage(QWidget):
         self.masterSoundSlider.setGeometry(100, 280, 200, 30)  # directly under the button
         self.masterSoundSlider.setMinimum(0)
         self.masterSoundSlider.setMaximum(100)
-        self.masterSoundSlider.setValue(50)
+        self.masterSoundSlider.setValue(100)
         self.masterSoundSlider.setStyleSheet(Slider_style)
 
         # Game sound slider
@@ -82,7 +82,7 @@ class SettingsPage(QWidget):
         self.gSoundSlider.setGeometry(100, 300, 200, 30)  # directly under the button
         self.gSoundSlider.setMinimum(0)
         self.gSoundSlider.setMaximum(100)
-        self.gSoundSlider.setValue(50)
+        self.gSoundSlider.setValue(100)
         self.gSoundSlider.setStyleSheet(Slider_style)
 
         # Music sound slider
@@ -90,10 +90,10 @@ class SettingsPage(QWidget):
         self.mSoundSlider.setGeometry(100, 320, 200, 30)  # directly under the button
         self.mSoundSlider.setMinimum(0)
         self.mSoundSlider.setMaximum(100)
-        self.mSoundSlider.setValue(50)
+        self.mSoundSlider.setValue(100)
         self.mSoundSlider.setStyleSheet(Slider_style)
 
     def update_brightness(self, value):
-        """Update the global brightness level in the main window."""
+        """Update main window brightness."""
         if hasattr(self.main_window, "set_brightness"):
             self.main_window.set_brightness(value)
