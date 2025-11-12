@@ -1,10 +1,8 @@
 # game.py
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel
-from PySide6.QtGui import QPixmap
-from menu import MainWindow  # importujemy, by móc wrócić
 
-class GameWindow(QWidget):
-    def __init__(self):
+class GamePage(QWidget):
+    def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
         self.setWindowTitle("Okno Gry")
@@ -22,7 +20,7 @@ class GameWindow(QWidget):
         self.background.resize(self.size())
 
         # --- Przycisk powrotu do menu ---
-        btn_back = QPushButton("WRÓĆ DO MENU", self)
+        btn_back = QPushButton("POWRÓT DO MENU", self)
         btn_back.setGeometry(230, 300, 150, 40)
         btn_back.clicked.connect(self.main_window.show_menu)
         btn_back.setStyleSheet("""
