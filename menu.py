@@ -30,7 +30,14 @@ class MainWindow(QMainWindow):
         self.settings_page.main_window = self
         
         self.show_menu()
-    
+
+    def keyPressEvent(self, event):
+        from PySide6.QtCore import Qt
+        if event.key() == Qt.Key_Escape:
+            self.show_menu()
+        else:
+            super().keyPressEvent(event)
+
     def show_menu(self):
         self.stacked_widget.setCurrentWidget(self.menu_page)
     
