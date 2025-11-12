@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, 
                              QGroupBox, QStackedWidget, QMainWindow)
-from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtGui import QPixmap
+from game_settings import SettingsPage
 import sys
 
 class MainWindow(QMainWindow):
@@ -46,6 +47,13 @@ class MenuPage(QWidget):
         super().__init__()
         self.main_window = main_window
         
+        # --- współrzędne dla przycisków ---
+        buttons_x_start = 500
+        buttons_y_start = 390
+        button_width = 270
+        button_height = 62
+        button_padding = 15
+        
         # --- Obraz tła ---
         self.background = QLabel(self)
         self.background.setGeometry(0,0, self.width(), self.height())
@@ -68,7 +76,7 @@ class MenuPage(QWidget):
         
         # --- Przycisk START ---
         btn_start = QPushButton(self.menu_box)
-        btn_start.setGeometry(500, 390, 270, 62)
+        btn_start.setGeometry(buttons_x_start, buttons_y_start, button_width, button_height)
 
         btn_start.clicked.connect(self.main_window.show_game)
         btn_start.setStyleSheet("""
@@ -84,7 +92,7 @@ class MenuPage(QWidget):
         
         # --- Przycisk USTAWIENIA ---
         btn_settings = QPushButton(self.menu_box)
-        btn_settings.setGeometry(500, 467, 270, 62)
+        btn_settings.setGeometry(buttons_x_start, buttons_y_start + button_height + button_padding, button_width, button_height)
         btn_settings.clicked.connect(self.main_window.show_settings)
         btn_settings.setStyleSheet("""
             QPushButton {
@@ -102,7 +110,7 @@ class MenuPage(QWidget):
         
         # --- Przycisk WYJŚCIE ---
         btn_exit = QPushButton(self.menu_box)
-        btn_exit.setGeometry(500, 544, 270, 62)
+        btn_exit.setGeometry(buttons_x_start, buttons_y_start + 2 * button_height + 2 * button_padding, button_width, button_height)
         btn_exit.clicked.connect(QApplication.instance().quit)
         btn_exit.setStyleSheet("""
             QPushButton {
@@ -148,35 +156,6 @@ class GamePage(QWidget):
                 background-color: orange;
             }
         """)
-
-
-class SettingsPage(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-        self.main_window = main_window
-        
-        # Add your settings content here
-        label = QLabel("Ustawienia", self)
-        label.setStyleSheet("font-size: 24px; color: white;")
-        label.setGeometry(100, 100, 300, 50)
-        
-        # Back button
-        btn_back = QPushButton("POWRÓT DO MENU", self)
-        btn_back.setGeometry(100, 200, 150, 40)
-        btn_back.clicked.connect(self.main_window.show_menu)
-        btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: darkorange;
-                color: white;
-                border-radius: 10px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: orange;
-            }
-        """)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
