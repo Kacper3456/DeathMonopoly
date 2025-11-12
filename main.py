@@ -3,28 +3,9 @@ from PySide6.QtGui import QPixmap, QPainter, QColor
 from PySide6.QtCore import Qt
 from menu import MenuPage
 from game import GamePage
-from settings import SettingsPage
+from game_settings import SettingsPage, BrightnessOverlay
 import sys
 
-class BrightnessOverlay(QWidget):
-    """A transparent overlay that darkens the whole window."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._opacity = 0.0
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setAttribute(Qt.WA_NoSystemBackground)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.raise_()
-
-    def setOpacity(self, opacity: float):
-        """Set opacity between 0.0 (no dim) and 1.0 (completely black)."""
-        self._opacity = max(0.0, min(1.0, opacity))
-        self.update()
-
-    def paintEvent(self, event):
-        if self._opacity > 0:
-            painter = QPainter(self)
-            painter.fillRect(self.rect(), QColor(0, 0, 0, int(self._opacity * 255)))
 
 #Okno gry
 class MainWindow(QMainWindow):
