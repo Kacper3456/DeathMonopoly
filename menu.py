@@ -4,51 +4,6 @@ from PySide6.QtGui import QPixmap
 from game_settings import SettingsPage
 import sys
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        # self.setWindowTitle("Game")
-        self.setGeometry(30, 50, 1366, 768)
-        self.setFixedSize(1366, 768)
-        
-        # --- tworzenie stosu ---
-        self.stacked_widget = QStackedWidget()
-        self.setCentralWidget(self.stacked_widget)
-        
-        # --- tworzenie stron ---
-        self.menu_page = MenuPage(self)
-        self.game_page = GamePage(self)
-        self.settings_page = SettingsPage(self)
-        
-        # --- dodajemy strony do stosu ---
-        self.stacked_widget.addWidget(self.menu_page)
-        self.stacked_widget.addWidget(self.game_page)
-        self.stacked_widget.addWidget(self.settings_page)
-        
-        # --- zaleności ---
-        self.menu_page.main_window = self
-        self.game_page.main_window = self
-        self.settings_page.main_window = self
-        
-        self.show_menu()
-
-    def keyPressEvent(self, event):
-        from PySide6.QtCore import Qt
-        if event.key() == Qt.Key_Escape:
-            self.show_menu()
-        else:
-            super().keyPressEvent(event)
-
-    def show_menu(self):
-        self.stacked_widget.setCurrentWidget(self.menu_page)
-    
-    def show_game(self):
-        self.stacked_widget.setCurrentWidget(self.game_page)
-    
-    def show_settings(self):
-        self.stacked_widget.setCurrentWidget(self.settings_page)
-
-
 class MenuPage(QWidget):
     def __init__(self, main_window):
         super().__init__()
@@ -60,6 +15,7 @@ class MenuPage(QWidget):
         button_width = 270
         button_height = 62
         button_padding = 15
+        
         #jeden styl dla wszystkich przycisków
         def apply_button_style(button, image_path):
             button.setStyleSheet(f"""
@@ -119,37 +75,3 @@ class MenuPage(QWidget):
     def resizeEvent(self, event):
         self.background.resize(self.size())
         
-
-
-class GamePage(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-        self.main_window = main_window
-        
-        # Add your game content here
-        label = QLabel("Game Screen", self)
-        label.setStyleSheet("font-size: 24px; color: white;")
-        label.setGeometry(100, 100, 300, 50)
-        
-        # Back button
-        btn_back = QPushButton("POWRÓT DO MENU", self)
-        btn_back.setGeometry(100, 200, 150, 40)
-        btn_back.clicked.connect(self.main_window.show_menu)
-        btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: darkorange;
-                color: white;
-                border-radius: 10px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: orange;
-            }
-        """)
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())

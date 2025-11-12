@@ -3,7 +3,7 @@ from PySide6.QtGui import QPixmap, QPainter, QColor
 from PySide6.QtCore import Qt
 from menu import MenuPage
 from game import GamePage
-from settings import SettingsPage
+from game_settings import SettingsPage
 import sys
 
 class BrightnessOverlay(QWidget):

@@ -1,5 +1,6 @@
 # game.py
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel
+from PySide6.QtGui import QPixmap
 
 class GamePage(QWidget):
     def __init__(self, main_window):
@@ -39,9 +40,3 @@ class GamePage(QWidget):
 
     def resizeEvent(self, event):
         self.background.resize(self.size())
-
-    def back_to_menu(self):
-        # Wracamy do menu
-        self.menu = MainWindow()
-        self.menu.show()
-        self.close()
