@@ -1,7 +1,7 @@
 # game-settings.py
 
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QGroupBox, QSlider, QRadioButton, QHBoxLayout, QButtonGroup
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QPainter, QColor
 from PySide6.QtCore import Qt
 
 class SettingsPage(QWidget):
@@ -154,6 +154,29 @@ class SettingsPage(QWidget):
         self.difficulty_group.addButton(self.radio_hard, 3) 
 
         
+         # Brightness slider
+        self.brightnessSlider = QSlider(Qt.Horizontal, self)
+        self.brightnessSlider.setGeometry(slider_x_start, slider_y_start+300, slider_width, slider_height)
+        self.brightnessSlider.setMinimum(50)
+        self.brightnessSlider.setMaximum(100)
+        self.brightnessSlider.setValue(100)
+        self.brightnessSlider.setStyleSheet("""
+            QSlider::groove:horizontal {
+                background: #555;
+                height: 20px;
+                width: 250px;
+                border-radius: 4px;
+            }
+            QSlider::handle:horizontal {
+                background: darkpurple;
+                width: 25px;
+                margin: -5px 0;
+                border-radius: 9px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: rgba(240, 178, 39, 200);
+            }""")
+        self.brightnessSlider.valueChanged.connect(self.update_brightness)
         
         
         # Back button
@@ -171,9 +194,36 @@ class SettingsPage(QWidget):
             }
         """)
         
-def get_music_volume(self):
-    """Get music volume value (0-100)"""
-    return self.music_slider.value()
+    def get_music_volume(self):
+        """Get music volume value (0-100)"""
+        return self.music_slider.value()
 
-def get_difficulty_id(self):
-            return self.difficulty_group.checkedId()  # zwróci 1, 2, or 3
+    def get_difficulty_id(self):
+        return self.difficulty_group.checkedId()  # zwróci 1, 2, or 3
+        
+    def update_brightness(self, value):
+            """Update main window brightness."""
+            if hasattr(self.main_window, "set_brightness"):
+                self.main_window.set_brightness(value)
+        
+        
+        
+class BrightnessOverlay(QWidget):
+    """A transparent overlay that darkens the whole window."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._opacity = 0.0
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.raise_()
+
+    def setOpacity(self, opacity: float):
+        """Set opacity between 0.0 (no dim) and 1.0 (completely black)."""
+        self._opacity = max(0.0, min(1.0, opacity))
+        self.update()
+
+    def paintEvent(self, event):
+        if self._opacity > 0:
+            painter = QPainter(self)
+            painter.fillRect(self.rect(), QColor(0, 0, 0, int(self._opacity * 255)))
