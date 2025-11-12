@@ -1,7 +1,7 @@
 # game.py
 from PySide6.QtWidgets import QWidget, QPushButton, QLabel
 from PySide6.QtGui import QPixmap
-from menu import MenuWindow  # importujemy, by móc wrócić
+from menu import MainWindow  # importujemy, by móc wrócić
 
 class GameWindow(QWidget):
     def __init__(self):
@@ -38,11 +38,12 @@ class GameWindow(QWidget):
             }
         """)
 
+
     def resizeEvent(self, event):
         self.background.resize(self.size())
 
     def back_to_menu(self):
         # Wracamy do menu
-        self.menu = MenuWindow()
+        self.menu = MainWindow()
         self.menu.show()
         self.close()
