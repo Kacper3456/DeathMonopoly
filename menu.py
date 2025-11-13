@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, 
                              QGroupBox, QStackedWidget, QMainWindow)
 from PySide6.QtGui import QPixmap
-from game_settings import SettingsPage
 import sys
 
 class MenuPage(QWidget):

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QMenu
+from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QMenu, QPushButton
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt, QPoint
 
@@ -17,20 +17,15 @@ class GamePage(QWidget):
         self.setWindowTitle("Okno Gry")
 
         # --- współrzędne dla Opcji akcyjnych ---
-        action_x_start = 30
-        action_y_start = 30
-        action_width = 300
+        action_x_start = 10
+        action_y_start = 20
+        action_width = 330
         action_height = 200
-        action_padding = 30
-
-        # Add your game content here
-        label = QLabel("Game Screen", self)
-        label.setStyleSheet("font-size: 24px; color: white;")
-        label.setGeometry(100, 100, 300, 50)
+        action_padding = 21
 
         # --- Tło gry ---
         self.background = QLabel(self)
-        pixmap = QPixmap("program_files/game_background.jpg")
+        pixmap = QPixmap("program_files/stars.png")
         self.background.setPixmap(pixmap)
         self.background.setScaledContents(True)
         self.background.resize(self.size())
@@ -38,7 +33,7 @@ class GamePage(QWidget):
         # --- Box do grupowania opcji aukcyjnych ---
         self.menu_box = QGroupBox(self)
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
-        self.menu_box.setGeometry(20, 30, 1000, 800)
+        self.menu_box.setGeometry(20, 30, 1050, 800)
 
         # Opcja Akcyjna 1
         self.action1 = ClickableLabel("START", self.menu_box)
@@ -102,7 +97,7 @@ class GamePage(QWidget):
 
         # --- Dialog Box (scrollable container) ---
         self.DialogBox = QScrollArea(self)
-        self.DialogBox.setGeometry(30, 500, 1000, 250)
+        self.DialogBox.setGeometry(30, 500, 1035, 250)
         self.DialogBox.setStyleSheet("""
             QScrollArea {
                 background-color: rgba(128, 0, 128, 128);
@@ -162,13 +157,32 @@ class GamePage(QWidget):
 
         # --- Players Box ---
         self.playerBox = QLabel(self)
-        self.playerBox.setGeometry(1100, 60, 250, 420)
+        self.playerBox.setGeometry(1100, 110, 250, 360)
         self.playerBox.setStyleSheet("QLabel { background-color: rgba(128, 0, 128, 200); }")
 
         # --- Currency Box ---
         self.currencyBox = QLabel(self)
-        self.currencyBox.setGeometry(1100, 10, 250, 40)
+        self.currencyBox.setGeometry(1100, 50, 250, 40)
         self.currencyBox.setStyleSheet("QLabel { background-color: rgba(128, 0, 128, 200); }")
+        
+        
+        # # --- przycisk wyjście do menu ---
+        # btn_exit = QPushButton(self.menu_box)
+        # btn_exit.setGeometry(1000, 0, 48, 30)
+        # btn_exit.clicked.connect(self.main_window.show_menu)
+        # btn_exit.setStyleSheet(f"""
+        #         QPushButton {{
+        #             background-image: url("images/buttons/exit-button.png");
+        #             background-position: center;
+        #             border-radius: 10px;
+        #         }}
+        #         QPushButton:hover {{
+        #             background-color: rgba(255, 215, 0, 0.7);
+        #         }}
+        #         QPushButton:pressed {{
+        #             background-color: orange;
+        #         }}
+        #     """)
 
     # --- Update indicator visibility based on scroll position ---
     def updateIndicators(self):
