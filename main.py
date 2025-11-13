@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
         self.game_page.main_window = self
         self.settings_page.main_window = self
 
-        self.show_menu()
+        self.show_game()
 
         self.brightness_overlay = BrightnessOverlay(self)
         self.brightness_overlay.setGeometry(0, 0, self.width(), self.height())
