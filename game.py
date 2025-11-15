@@ -88,6 +88,45 @@ class GamePage(QWidget):
         self.playerBox = QLabel(self)
         self.playerBox.setGeometry(1100, action_y_start+60, 250, 360)
         self.playerBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
+        
+        # --- NPC List ---
+        self.npc_list = []
+        npc_spacing = 72 
+
+        npc_data = [
+            {"name": "Boris", "avatar": "images/game_window/avatar/russian_spy.png"},
+            {"name": "Wario", "avatar": "images/game_window/avatar/wario.png"},
+            {"name": "NPC 3", "avatar": "images/avatar/npc3.png"},
+            {"name": "NPC 4", "avatar": "images/avatar/npc4.png"},
+            {"name": "NPC 5", "avatar": "images/avatar/npc5.png"},
+        ]
+
+        for i, npc in enumerate(npc_data):
+            npc_container = QWidget(self.playerBox)
+            npc_container.setGeometry(10, 10 + i * npc_spacing, 230, 60)
+            
+            # --- awatar ---
+            avatar_label = QLabel(npc_container)
+            avatar_label.setGeometry(5, 5, 50, 50)
+            pixmap = QPixmap(npc["avatar"])
+            if pixmap.isNull():
+                pixmap = QPixmap("images/options/Placeholder_addimage.png")
+            scaled_pixmap = pixmap.scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            avatar_label.setPixmap(scaled_pixmap)
+            avatar_label.setStyleSheet("border: 2px solid white; border-radius: 5px;")
+            
+            # --- imię ---
+            nickname_label = QLabel(npc["name"], npc_container)
+            nickname_label.setGeometry(65, 15, 160, 30)
+            nickname_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+            nickname_label.setStyleSheet("color: white; background-color: transparent;")
+            nickname_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            
+            self.npc_list.append({
+                "container": npc_container,
+                "avatar": avatar_label,
+                "nickname": nickname_label
+            })
 
         # --- Currency Box ---
         self.currencyBox = QLabel(self)
