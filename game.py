@@ -14,14 +14,13 @@ class GamePage(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        self.setWindowTitle("Okno Gry")
 
         # --- współrzędne dla Opcji akcyjnych ---
-        action_x_start = 10
-        action_y_start = 20
+        action_x_start = 30
+        action_y_start = 55
         action_width = 330
         action_height = 200
-        action_padding = 21
+        action_padding = 20
 
         # --- Tło gry ---
         self.background = QLabel(self)
@@ -33,12 +32,12 @@ class GamePage(QWidget):
         # --- Box do grupowania opcji aukcyjnych ---
         self.menu_box = QGroupBox(self)
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
-        self.menu_box.setGeometry(20, 30, 1050, 800)
+        self.menu_box.setGeometry(0,0, 1100, 800)
 
         # Opcja Akcyjna 1
         self.action1 = ClickableLabel("START", self.menu_box)
         self.action1.setGeometry(action_x_start, action_y_start, action_width, action_height)
-        pixmap = QPixmap("images/options/Placeholder_addimage.png")
+        pixmap = QPixmap("images/game_window/placeholder.png")
         scaled_pixmap = pixmap.scaled(self.action1.width(), self.action1.height())
         self.action1.setPixmap(scaled_pixmap)
         self.action1.clicked.connect(lambda checked=False: self.show_action_menu(self.action1))
@@ -46,7 +45,7 @@ class GamePage(QWidget):
         # Opcja Akcyjna 2
         self.action2 = ClickableLabel("START", self.menu_box)
         self.action2.setGeometry(action_x_start + action_width + action_padding, action_y_start, action_width, action_height)
-        pixmap = QPixmap("images/options/Placeholder_addimage.png")
+        pixmap = QPixmap("images/game_window/placeholder.png")
         scaled_pixmap = pixmap.scaled(self.action2.width(), self.action2.height())
         self.action2.setPixmap(scaled_pixmap)
         self.action2.clicked.connect(lambda checked=False: self.show_action_menu(self.action2))
@@ -55,7 +54,7 @@ class GamePage(QWidget):
         self.action3 = ClickableLabel("START", self.menu_box)
         self.action3.setGeometry(action_x_start + 2 * action_width + 2 * action_padding, action_y_start, action_width,
                             action_height)
-        pixmap = QPixmap("images/options/Placeholder_addimage.png")
+        pixmap = QPixmap("images/game_window/placeholder.png")
         scaled_pixmap = pixmap.scaled(self.action3.width(), self.action3.height())
         self.action3.setPixmap(scaled_pixmap)
         self.action3.clicked.connect(lambda checked=False: self.show_action_menu(self.action3))
@@ -64,7 +63,7 @@ class GamePage(QWidget):
         self.action4 = ClickableLabel("START", self.menu_box)
         self.action4.setGeometry(action_x_start, action_y_start + action_height + action_padding, action_width,
                             action_height)
-        pixmap = QPixmap("images/options/Placeholder_addimage.png")
+        pixmap = QPixmap("images/game_window/placeholder.png")
         scaled_pixmap = pixmap.scaled(self.action4.width(), self.action4.height())
         self.action4.setPixmap(scaled_pixmap)
         self.action4.clicked.connect(lambda checked=False: self.show_action_menu(self.action4))
@@ -72,7 +71,7 @@ class GamePage(QWidget):
         # Opcja Akcyjna 5
         self.action5 = ClickableLabel("START", self.menu_box)
         self.action5.setGeometry(action_x_start + action_width + action_padding, action_y_start + action_height + action_padding, action_width, action_height)
-        pixmap = QPixmap("images/options/Placeholder_addimage.png")
+        pixmap = QPixmap("images/game_window/placeholder.png")
         scaled_pixmap = pixmap.scaled(self.action5.width(), self.action5.height())
         self.action5.setPixmap(scaled_pixmap)
         self.action5.clicked.connect(lambda checked=False: self.show_action_menu(self.action5))
@@ -80,15 +79,25 @@ class GamePage(QWidget):
         # Opcja Akcyjna 6
         self.action6 = ClickableLabel("START", self.menu_box)
         self.action6.setGeometry(action_x_start + 2 * action_width + 2 * action_padding, action_y_start + action_height + action_padding, action_width, action_height)
-        pixmap = QPixmap("images/options/Placeholder_addimage.png")
+        pixmap = QPixmap("images/game_window/placeholder.png")
         scaled_pixmap = pixmap.scaled(self.action6.width(), self.action6.height())
         self.action6.setPixmap(scaled_pixmap)
         self.action6.clicked.connect(lambda checked=False: self.show_action_menu(self.action6))
+        
+        # --- Players Box ---
+        self.playerBox = QLabel(self)
+        self.playerBox.setGeometry(1100, action_y_start+60, 250, 360)
+        self.playerBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
+
+        # --- Currency Box ---
+        self.currencyBox = QLabel(self)
+        self.currencyBox.setGeometry(1100, action_y_start, 250, 40)
+        self.currencyBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
 
         # --- Avatar Box ---
         self.avatarBox = QLabel(self)
-        self.avatarBox.setGeometry(1100, 500, 250, 250)
-        self.avatarBox.setStyleSheet("QLabel { background-color: rgba(128, 0, 128, 200); }")
+        self.avatarBox.setGeometry(1100, 495, 250, 250)
+        self.avatarBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
         avatar_image = QLabel(self.avatarBox)
         avatar_image.setGeometry(25, 25, 200, 200)
         pixmap = QPixmap("images/options/las.png")
@@ -97,10 +106,10 @@ class GamePage(QWidget):
 
         # --- Dialog Box (scrollable container) ---
         self.DialogBox = QScrollArea(self)
-        self.DialogBox.setGeometry(30, 500, 1035, 250)
+        self.DialogBox.setGeometry(action_x_start, 495, 1035, 250)
         self.DialogBox.setStyleSheet("""
             QScrollArea {
-                background-color: rgba(128, 0, 128, 128);
+                background-color: rgba(38, 39, 59, 0.8);
                 border: none;
             }
         """)
@@ -154,35 +163,25 @@ class GamePage(QWidget):
         self.downIndicator.hide()
         self.DialogBox.verticalScrollBar().valueChanged.connect(self.updateIndicators)
         self.updateIndicators()
-
-        # --- Players Box ---
-        self.playerBox = QLabel(self)
-        self.playerBox.setGeometry(1100, 110, 250, 360)
-        self.playerBox.setStyleSheet("QLabel { background-color: rgba(128, 0, 128, 200); }")
-
-        # --- Currency Box ---
-        self.currencyBox = QLabel(self)
-        self.currencyBox.setGeometry(1100, 50, 250, 40)
-        self.currencyBox.setStyleSheet("QLabel { background-color: rgba(128, 0, 128, 200); }")
         
         
-        # # --- przycisk wyjście do menu ---
-        # btn_exit = QPushButton(self.menu_box)
-        # btn_exit.setGeometry(1000, 0, 48, 30)
-        # btn_exit.clicked.connect(self.main_window.show_menu)
-        # btn_exit.setStyleSheet(f"""
-        #         QPushButton {{
-        #             background-image: url("images/buttons/exit-button.png");
-        #             background-position: center;
-        #             border-radius: 10px;
-        #         }}
-        #         QPushButton:hover {{
-        #             background-color: rgba(255, 215, 0, 0.7);
-        #         }}
-        #         QPushButton:pressed {{
-        #             background-color: orange;
-        #         }}
-        #     """)
+        # --- przycisk wyjście do menu ---
+        btn_exit = QPushButton(self)
+        btn_exit.setGeometry(1300, 15, 50, 32)
+        btn_exit.clicked.connect(self.main_window.show_menu)
+        btn_exit.setStyleSheet(f"""
+                QPushButton {{
+                    background-image: url("images/buttons/exit-button.png");
+                    background-position: center;
+                    border-radius: 10px;
+                }}
+                QPushButton:hover {{
+                    background-color: rgba(255, 215, 0, 0.7);
+                }}
+                QPushButton:pressed {{
+                    background-color: orange;
+                }}
+            """)
 
     # --- Update indicator visibility based on scroll position ---
     def updateIndicators(self):
