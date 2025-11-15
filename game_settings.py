@@ -194,7 +194,7 @@ class SettingsPage(QWidget):
                 border-radius: 10px;
             }
             QPushButton:hover {
-                background-color: orange;
+                background-color: rgba(255, 215, 0, 0.7);
             }
         """)
         
