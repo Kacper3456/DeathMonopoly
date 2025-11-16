@@ -25,7 +25,7 @@ class GamePage(QWidget):
 
         # --- Tło gry ---
         self.background = QLabel(self)
-        pixmap = QPixmap("program_files/stars.png")
+        pixmap = QPixmap("images/stars.png")
         self.background.setPixmap(pixmap)
         self.background.setScaledContents(True)
         self.background.resize(self.size())
@@ -103,7 +103,7 @@ class GamePage(QWidget):
         self.avatar_image = QLabel(self.avatarBox)
         self.avatar_image.setAlignment(Qt.AlignCenter)
         self.avatar_image.setGeometry(0, 0, 250, 250)   
-        pixmap = QPixmap("images/options/las.png")
+        pixmap = QPixmap("images/game_window/avatar/businessman.png")
         scaled_pixmap = pixmap.scaled(self.avatar_image.width(), self.avatar_image.height())
         self.avatar_image.setPixmap(scaled_pixmap)
 

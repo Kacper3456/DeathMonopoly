@@ -34,7 +34,7 @@ class MenuPage(QWidget):
         # --- Obraz tła ---
         self.background = QLabel(self)
         self.background.setGeometry(0,0, self.width(), self.height())
-        pixmap = QPixmap("program_files/stars.png")
+        pixmap = QPixmap("images/stars.png")
         self.background.setScaledContents(True)  
         self.background.setPixmap(pixmap)
         self.background.lower()  
@@ -47,7 +47,7 @@ class MenuPage(QWidget):
         # --- obraz logo ---
         logo_img = QLabel("START", self.menu_box)
         logo_img.setGeometry(450, 50, 350, 300)
-        pixmap = QPixmap("program_files/logo.jpg")
+        pixmap = QPixmap("images/logo.jpg")
         scaled_pixmap = pixmap.scaled(logo_img.width(), logo_img.height())
         logo_img.setPixmap(scaled_pixmap)
         
