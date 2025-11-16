@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QMenu, QPushButton
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt, QPoint
+from npc_manager import NPCManager
 
 
 class ClickableLabel(QLabel):
@@ -86,48 +87,9 @@ class GamePage(QWidget):
         
         # --- Players Box ---
         self.playerBox = QLabel(self)
-        self.playerBox.setGeometry(1100, action_y_start+60, 250, 360)
+        self.playerBox.setGeometry(1100, action_y_start+60, 250, 370)
         self.playerBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
         
-        # --- NPC List ---
-        self.npc_list = []
-        npc_spacing = 72 
-
-        npc_data = [
-            {"name": "Boris", "avatar": "images/game_window/avatar/russian_spy.png"},
-            {"name": "Wario", "avatar": "images/game_window/avatar/wario.png"},
-            {"name": "NPC 3", "avatar": "images/avatar/npc3.png"},
-            {"name": "NPC 4", "avatar": "images/avatar/npc4.png"},
-            {"name": "NPC 5", "avatar": "images/avatar/npc5.png"},
-        ]
-
-        for i, npc in enumerate(npc_data):
-            npc_container = QWidget(self.playerBox)
-            npc_container.setGeometry(10, 10 + i * npc_spacing, 230, 60)
-            
-            # --- awatar ---
-            avatar_label = QLabel(npc_container)
-            avatar_label.setGeometry(5, 5, 50, 50)
-            pixmap = QPixmap(npc["avatar"])
-            if pixmap.isNull():
-                pixmap = QPixmap("images/options/Placeholder_addimage.png")
-            scaled_pixmap = pixmap.scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            avatar_label.setPixmap(scaled_pixmap)
-            avatar_label.setStyleSheet("border: 2px solid white; border-radius: 5px;")
-            
-            # --- imię ---
-            nickname_label = QLabel(npc["name"], npc_container)
-            nickname_label.setGeometry(65, 15, 160, 30)
-            nickname_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-            nickname_label.setStyleSheet("color: white; background-color: transparent;")
-            nickname_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-            
-            self.npc_list.append({
-                "container": npc_container,
-                "avatar": avatar_label,
-                "nickname": nickname_label
-            })
-
         # --- Currency Box ---
         self.currencyBox = QLabel(self)
         self.currencyBox.setGeometry(1100, action_y_start, 250, 40)
@@ -137,11 +99,11 @@ class GamePage(QWidget):
         self.avatarBox = QLabel(self)
         self.avatarBox.setGeometry(1100, 495, 250, 250)
         self.avatarBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
-        avatar_image = QLabel(self.avatarBox)
-        avatar_image.setGeometry(25, 25, 200, 200)
+        self.avatar_image = QLabel(self.avatarBox)
+        self.avatar_image.setGeometry(25, 25, 200, 200)
         pixmap = QPixmap("images/options/las.png")
-        scaled_pixmap = pixmap.scaled(avatar_image.width(), avatar_image.height())
-        avatar_image.setPixmap(scaled_pixmap)
+        scaled_pixmap = pixmap.scaled(self.avatar_image.width(), self.avatar_image.height())
+        self.avatar_image.setPixmap(scaled_pixmap)
 
         # --- Dialog Box (scrollable container) ---
         self.DialogBox = QScrollArea(self)
@@ -160,7 +122,7 @@ class GamePage(QWidget):
         self.dialogText = QLabel(self.DialogBox)
         self.dialogText.setWordWrap(True)
         self.dialogText.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        self.dialogText.setFont(QFont("Arial", 16))
+        self.dialogText.setFont(QFont("Helvetica", 20))
         self.dialogText.setStyleSheet("color: white; padding: 10px; background-color: rgba(128, 0, 128, 0);")
 
         # Example long text
@@ -203,7 +165,14 @@ class GamePage(QWidget):
         self.DialogBox.verticalScrollBar().valueChanged.connect(self.updateIndicators)
         self.updateIndicators()
         
+        # --- NPC Manager - tutaj tworzymy i zarządzamy NPC ---
+        self.npc_manager = NPCManager()
+        self.npc_widgets = self.npc_manager.create_npc_widgets(self.playerBox)
         
+        # Podłączamy aktualizację interfejsu po kliknięciu NPC
+        for npc_widget in self.npc_widgets:
+            npc_widget.clicked.connect(self.update_npc_display)
+            
         # --- przycisk wyjście do menu ---
         btn_exit = QPushButton(self)
         btn_exit.setGeometry(1300, 15, 50, 32)
@@ -243,6 +212,30 @@ class GamePage(QWidget):
     def resizeEvent(self, event):
         self.background.resize(self.size())
         self.updateIndicators()
+        
+    def update_npc_display(self, index):
+        
+        npc_data = self.npc_manager.get_npc_data(index)
+        if npc_data is None:
+            return
+        
+        # --- Zmienić duzy awatar ---
+        pixmap = QPixmap(npc_data["avatar"])
+        if not pixmap.isNull():
+            scaled_pixmap = pixmap.scaled(
+                self.avatar_image.width(), self.avatar_image.height(),
+                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.TransformationMode.SmoothTransformation
+            )
+            self.avatar_image.setPixmap(scaled_pixmap)
+        
+        #  --- Zmienić dialog --- 
+        dialogue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{npc_data['name']}</b><br><br>{npc_data['dialogue']}"
+        self.dialogText.setText(dialogue_text)
+        
+        # Scroll dialog na początek
+        self.DialogBox.verticalScrollBar().setValue(0)
+
 
     def show_action_menu(self, target_label):
         menu = QMenu(self)
