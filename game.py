@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QMenu, QP
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt, QPoint
 from npc_manager import NPCManager
+from player_manager import PlayerManager
 
 
 class ClickableLabel(QLabel):
@@ -15,6 +16,8 @@ class GamePage(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
+        
+        self.player_manager = PlayerManager()
 
         # --- współrzędne dla Opcji akcyjnych ---
         action_x_start = 30
@@ -99,6 +102,28 @@ class GamePage(QWidget):
         self.avatarBox = QLabel(self)
         self.avatarBox.setGeometry(1100, 495, 250, 250)
         self.avatarBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
+        
+         # --- Przycisk powrotu do gracza (Me) ---
+        self.btn_player = QPushButton("ME", self)
+        self.btn_player.setGeometry(1110, action_y_start+450, 40, 20)
+        self.btn_player.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(38, 39, 59, 0.8);
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+                border: 2px solid rgb(255, 215, 0);
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 215, 0, 1);
+            }
+            QPushButton:pressed {
+                background-color: rgb(255, 165, 0);
+            }
+        """)
+        self.btn_player.clicked.connect(self.show_player_character)
+        self.btn_player.raise_() 
         
         self.avatar_image = QLabel(self.avatarBox)
         self.avatar_image.setAlignment(Qt.AlignCenter)
@@ -214,6 +239,26 @@ class GamePage(QWidget):
     def resizeEvent(self, event):
         self.background.resize(self.size())
         self.updateIndicators()
+        
+           # --- Nowa metoda do pokazania postaci gracza ---
+    def show_player_character(self):
+        
+        self.player_data = self.player_manager.get_player_data()
+        # --- Zmienić duzy awatar ---
+        pixmap = QPixmap(self.player_data["avatar"])
+        if not pixmap.isNull():
+            scaled_pixmap = pixmap.scaled(
+                self.avatar_image.width(), self.avatar_image.height(),
+                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.TransformationMode.SmoothTransformation
+            )
+            self.avatar_image.setPixmap(scaled_pixmap)
+        
+        #  --- Zmienić dialog --- 
+        dialogue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{self.player_data['name']}</b><br><br>{self.player_data['dialogue']}"
+        self.dialogText.setText(dialogue_text)
+        
+        self.DialogBox.verticalScrollBar().setValue(0)
         
     def update_npc_display(self, index):
         
