@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QApplication, QWidget, QPushButton, QLabel, 
-                             QGroupBox, QStackedWidget, QMainWindow)
+                             QGroupBox)
 from PySide6.QtGui import QPixmap
 import sys
 

@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QMenu, QPushButton
+from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButton
 from PySide6.QtGui import QPixmap, QFont
-from PySide6.QtCore import Signal, Qt, QPoint
+from PySide6.QtCore import Signal, Qt
 from npc_manager import NPCManager
 from player_manager import PlayerManager
 from action_manager import ActionManager
@@ -48,6 +48,47 @@ class GamePage(QWidget):
             action_widget.clicked.connect(
                 lambda checked=False, widget=action_widget: self.action_manager.show_action_menu(widget, self)
             )
+            
+        def apply_button_style(button, image_path):
+            button.setStyleSheet(f"""
+                QPushButton {{
+                    background-image: url({image_path});
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    border-radius: 10px;
+                }}
+                QPushButton:hover {{
+                    background-color: rgba(255, 215, 0, 0.7);
+                }}
+                QPushButton:pressed {{
+                    background-color: orange;
+                }}
+            """)
+            
+         # --- Przyciski Random i Start ---
+        button_y = action_y_start + 2 * self.action_manager.action_height + 2 * self.action_manager.action_padding
+        button_width = 136
+        button_height = 33
+        
+        self.btn_random = QPushButton(self.menu_box)
+        self.btn_random.setGeometry(400, button_y, button_width, button_height)
+        self.btn_random.clicked.connect(self.randomize_actions)
+        apply_button_style(self.btn_random, "images/buttons/random-button.png")
+        
+        self.btn_start = QPushButton(self.menu_box)
+        self.btn_start.setGeometry(400 + button_width + 20, button_y, button_width, button_height)
+        self.btn_start.clicked.connect(self.start_game)
+        apply_button_style(self.btn_start, "images/buttons/start-button-small.png")
+        
+        # --- Przycisk Continue (ukryty na początku) ---
+        self.btn_continue = QPushButton(self.menu_box)
+        self.btn_continue.setGeometry(500, button_y, button_width, button_height)
+        self.btn_continue.clicked.connect(self.continue_game)
+        apply_button_style(self.btn_continue, "images/buttons/continue-button-small.png")
+        self.btn_continue.hide()  # Ukryj na początku
+        
+        # Flaga czy gra się rozpoczęła
+        self.game_started = False
         
         # --- Players Box ---
         self.playerBox = QLabel(self)
@@ -247,3 +288,54 @@ class GamePage(QWidget):
     def show_action_menu(self, target_label):
         """Deleguje pokazanie menu do ActionManager"""
         self.action_manager.show_action_menu(target_label, self)
+        
+    def randomize_actions(self):
+        """Losuje opcje dla wszystkich akcji"""
+        self.action_manager.randomize_actions()
+    
+    def start_game(self):
+        if not self.action_manager.all_actions_selected():
+            # Nie wszystkie akcje wybrane - pokaż komunikat
+            missing = self.action_manager.get_missing_count()
+            player_data = self.player_manager.get_player_data()
+            
+            warning_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+            warning_text += f"<span style='color: rgb(255, 100, 100); font-size: 22px;'>You need to select all 6 actions before starting, ma-a-n!</span><br><br>"
+            warning_text += f"Missing: {missing} action{'s' if missing > 1 else ''}"
+            
+            self.dialogText.setText(warning_text)
+            self.DialogBox.verticalScrollBar().setValue(0)
+            
+            # Pokaż awatar gracza
+            if not self.player_avatar_pixmap.isNull():
+                scaled_pixmap = self.player_avatar_pixmap.scaled(
+                    self.avatar_image.width(), self.avatar_image.height(),
+                    Qt.AspectRatioMode.KeepAspectRatio, 
+                    Qt.TransformationMode.SmoothTransformation
+                )
+                self.avatar_image.setPixmap(scaled_pixmap)
+        else:
+            self.game_started = True
+            
+            # Ukryj Random i Start, pokaż Continue
+            self.btn_random.hide()
+            self.btn_start.hide()
+            self.btn_continue.show()
+            
+            # Pokaż komunikat o rozpoczęciu gry
+            player_data = self.player_manager.get_player_data()
+            start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+            start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
+            start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
+            
+            self.dialogText.setText(start_text)
+            self.DialogBox.verticalScrollBar().setValue(0)
+    
+    def continue_game(self):
+        # Tutaj możesz dodać logikę kontynuacji gry
+        player_data = self.player_manager.get_player_data()
+        continue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+        continue_text += "continues..."
+        
+        self.dialogText.setText(continue_text)
+        self.DialogBox.verticalScrollBar().setValue(0)
