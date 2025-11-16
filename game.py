@@ -100,7 +100,7 @@ class GamePage(QWidget):
         self.avatarBox.setGeometry(1100, 495, 250, 250)
         self.avatarBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
         self.avatar_image = QLabel(self.avatarBox)
-        self.avatar_image.setGeometry(25, 25, 200, 200)
+        self.avatar_image.setGeometry(10, 10, 240, 240)
         pixmap = QPixmap("images/options/las.png")
         scaled_pixmap = pixmap.scaled(self.avatar_image.width(), self.avatar_image.height())
         self.avatar_image.setPixmap(scaled_pixmap)
