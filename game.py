@@ -3,6 +3,7 @@ from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt, QPoint
 from npc_manager import NPCManager
 from player_manager import PlayerManager
+from action_manager import ActionManager
 
 
 class ClickableLabel(QLabel):
@@ -17,14 +18,15 @@ class GamePage(QWidget):
         super().__init__()
         self.main_window = main_window
         
+        # --- zarządzanie danymi gracza ---
         self.player_manager = PlayerManager()
+        # --- zarządzanie opcjami akcyjnymi ---
+        self.action_manager = ActionManager()
+
 
         # --- współrzędne dla Opcji akcyjnych ---
-        action_x_start = 30
-        action_y_start = 55
-        action_width = 330
-        action_height = 200
-        action_padding = 20
+        action_x_start = self.action_manager.action_x_start
+        action_y_start = self.action_manager.action_y_start
 
         # --- Tło gry ---
         self.background = QLabel(self)
@@ -38,55 +40,14 @@ class GamePage(QWidget):
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
         self.menu_box.setGeometry(0,0, 1100, 800)
 
-        # Opcja Akcyjna 1
-        self.action1 = ClickableLabel("START", self.menu_box)
-        self.action1.setGeometry(action_x_start, action_y_start, action_width, action_height)
-        pixmap = QPixmap("images/game_window/placeholder.png")
-        scaled_pixmap = pixmap.scaled(self.action1.width(), self.action1.height())
-        self.action1.setPixmap(scaled_pixmap)
-        self.action1.clicked.connect(lambda checked=False: self.show_action_menu(self.action1))
-
-        # Opcja Akcyjna 2
-        self.action2 = ClickableLabel("START", self.menu_box)
-        self.action2.setGeometry(action_x_start + action_width + action_padding, action_y_start, action_width, action_height)
-        pixmap = QPixmap("images/game_window/placeholder.png")
-        scaled_pixmap = pixmap.scaled(self.action2.width(), self.action2.height())
-        self.action2.setPixmap(scaled_pixmap)
-        self.action2.clicked.connect(lambda checked=False: self.show_action_menu(self.action2))
-
-        # Opcja Akcyjna 3
-        self.action3 = ClickableLabel("START", self.menu_box)
-        self.action3.setGeometry(action_x_start + 2 * action_width + 2 * action_padding, action_y_start, action_width,
-                            action_height)
-        pixmap = QPixmap("images/game_window/placeholder.png")
-        scaled_pixmap = pixmap.scaled(self.action3.width(), self.action3.height())
-        self.action3.setPixmap(scaled_pixmap)
-        self.action3.clicked.connect(lambda checked=False: self.show_action_menu(self.action3))
-
-        # Opcja Akcyjna 4
-        self.action4 = ClickableLabel("START", self.menu_box)
-        self.action4.setGeometry(action_x_start, action_y_start + action_height + action_padding, action_width,
-                            action_height)
-        pixmap = QPixmap("images/game_window/placeholder.png")
-        scaled_pixmap = pixmap.scaled(self.action4.width(), self.action4.height())
-        self.action4.setPixmap(scaled_pixmap)
-        self.action4.clicked.connect(lambda checked=False: self.show_action_menu(self.action4))
-
-        # Opcja Akcyjna 5
-        self.action5 = ClickableLabel("START", self.menu_box)
-        self.action5.setGeometry(action_x_start + action_width + action_padding, action_y_start + action_height + action_padding, action_width, action_height)
-        pixmap = QPixmap("images/game_window/placeholder.png")
-        scaled_pixmap = pixmap.scaled(self.action5.width(), self.action5.height())
-        self.action5.setPixmap(scaled_pixmap)
-        self.action5.clicked.connect(lambda checked=False: self.show_action_menu(self.action5))
-
-        # Opcja Akcyjna 6
-        self.action6 = ClickableLabel("START", self.menu_box)
-        self.action6.setGeometry(action_x_start + 2 * action_width + 2 * action_padding, action_y_start + action_height + action_padding, action_width, action_height)
-        pixmap = QPixmap("images/game_window/placeholder.png")
-        scaled_pixmap = pixmap.scaled(self.action6.width(), self.action6.height())
-        self.action6.setPixmap(scaled_pixmap)
-        self.action6.clicked.connect(lambda checked=False: self.show_action_menu(self.action6))
+         # --- Tworzenie opcji akcyjnych za pomocą ActionManager ---
+        self.action_widgets = self.action_manager.create_action_widgets(self.menu_box)
+        
+        # Podłącz sygnały kliknięcia dla każdej akcji
+        for action_widget in self.action_widgets:
+            action_widget.clicked.connect(
+                lambda checked=False, widget=action_widget: self.action_manager.show_action_menu(widget, self)
+            )
         
         # --- Players Box ---
         self.playerBox = QLabel(self)
@@ -240,7 +201,7 @@ class GamePage(QWidget):
         self.background.resize(self.size())
         self.updateIndicators()
         
-           # --- Nowa metoda do pokazania postaci gracza ---
+    # --- pokazanie postaci gracza ---
     def show_player_character(self):
         
         self.player_data = self.player_manager.get_player_data()
@@ -283,31 +244,6 @@ class GamePage(QWidget):
         # Scroll dialog na początek
         self.DialogBox.verticalScrollBar().setValue(0)
 
-
     def show_action_menu(self, target_label):
-        menu = QMenu(self)
-
-        # Example options
-        options = {
-            "easy": "images/options/easy.png",
-            "hard": "images/options/hard.png",
-            "las": "images/options/las.png",
-            "music": "images/options/music.png",
-            "medium": "images/options/medium.png",
-        }
-
-        # Add items dynamically
-        for name in options.keys():
-            menu.addAction(name)
-
-            # Show menu under the clicked label
-        pos = target_label.mapToGlobal(QPoint(0, target_label.height()))
-        selected_action = menu.exec_(pos)
-
-        if selected_action:
-            choice = selected_action.text()
-            image_path = options.get(choice)
-            if image_path:
-                pixmap = QPixmap(image_path)
-                scaled_pixmap = pixmap.scaled(target_label.width(), target_label.height())
-                target_label.setPixmap(scaled_pixmap)
+        """Deleguje pokazanie menu do ActionManager"""
+        self.action_manager.show_action_menu(target_label, self)
