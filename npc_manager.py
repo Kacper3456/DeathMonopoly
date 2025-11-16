@@ -52,8 +52,8 @@ class NPCManager:
             {"name": "BORIS", "avatar": "images/game_window/avatar/russian_spy.png", "dialogue": "Jestem Boris i oczywiście NIE jestem ruskim szpiegiem i NIE chcę ukraść wszystkich Twoich pieniędzy"},
             {"name": "WARIO", "avatar": "images/game_window/avatar/wario.png", "dialogue": "Relax, take-a the spaghetti, life is good"},
             {"name": "ALBEDO", "avatar": "images/game_window/avatar/succubus.png", "dialogue": "Powiedz tylko słowo, a przygotuję strategię tak doskonałą, że nawet demony z otchłani nie odważą się zakwestionować Twojej dominacji na rynku"},
-            {"name": "NPC 4", "avatar": "images/avatar/npc4.png", "dialogue": "Text text"},
-            {"name": "NPC 5", "avatar": "images/avatar/npc5.png", "dialogue": "Text but in German"}
+            {"name": "GERALT", "avatar": "images/game_window/avatar/geralt.png", "dialogue": "Potwory? Trendy? Bańki spekulacyjne? Żaden problem. Tylko miej na uwadze — jak się coś sypnie, to nie moja wina. To świat jest popsuty, nie ja"},
+            {"name": "JADWIDA", "avatar": "images/game_window/avatar/queen.png", "dialogue": "Czasem dobrze spojrzeć, jak tłum śmiertelników panikuje na rynku. To przynajmniej bywa zabawne. Ale skoro już tu jesteś, może opowiesz mi, w co zamierzasz inwestować?"}
         ]
         
         self.npc_widgets = []
