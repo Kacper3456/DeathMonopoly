@@ -10,11 +10,32 @@ class SettingsPage(QWidget):
         screen_width = 1366 
         screen_height = 768
         
-        self.setGeometry(30, 50, screen_width, screen_height)
         self.setFixedSize(screen_width, screen_height)
         self.main_window = main_window
         
-        # --- Obraz tła ---
+        def keyPressEvent(self, event):
+            w = self.focusWidget()
+            # --- kierowanie slajderami ---    
+            if isinstance(w, QSlider):
+                if event.key() == Qt.Key_Right:
+                    w.setValue(min(w.value() + 1, w.maximum()))
+                return
+            elif event.key() == Qt.Key_Left:
+                w.setValue(max(w.value() - 1, w.minimum()))
+                return
+            # --- kierowanie radiobutton ---  
+            if w == self.difficulty_container:
+                if event.key() == Qt.Key_Right:
+                    self._select_next_radio()
+                    return
+                if event.key() == Qt.Key_Left:
+                    self._select_prev_radio()
+                    return
+                
+            super().keyPressEvent(event)
+
+        
+        # ---------------- BACKGROUND ----------------
         self.background = QLabel(self)
         self.background.setGeometry(0,0, self.width(), self.height())
         pixmap = QPixmap("images/options/las.png")
@@ -22,7 +43,7 @@ class SettingsPage(QWidget):
         self.background.setPixmap(pixmap)
         self.background.lower()  
         
-         # --- przezroczysty box ---
+        # ---------------- MAIN PANEL ----------------
         self.sliders_panel = QGroupBox(self)
         self.sliders_panel.setStyleSheet("""
             QGroupBox {
@@ -38,22 +59,32 @@ class SettingsPage(QWidget):
         y = (screen_height - panel_height) // 2
         self.sliders_panel.setGeometry(x, y, panel_width, panel_height)
         
-        # --- tytuł ---
+        # ---------------- TITLE ----------------
         title_img = QLabel(self)
         title_img.setGeometry((screen_width-270)//2, 50, 270, 62)
         pixmap = QPixmap("images/buttons/settings-button.png")
         scaled_pixmap = pixmap.scaled(title_img.width(), title_img.height())
         title_img.setPixmap(scaled_pixmap)
         
-         # --- współrzędne dla sliderów ---
-        slider_x_start = 650
+        # ---------------------------------------------------
+        # ---------------- SLIDERY --------------------------
+        # ---------------------------------------------------
+        
+        # --- współrzędne dla sliderów ---
+        slider_x_start = 750
         slider_y_start = 150
         slider_width = 270
         slider_height = 62
         
+        # --- współrzędne dla label ---
+        label_x_start = 350
+        label_y_start = 160
+        label_height = 40
+        margin = 70
+        
         # --- MUSIC SLIDER ---
         self.music_label = QLabel(self)
-        self.music_label.setGeometry(350, 160, 160, 43)
+        self.music_label.setGeometry(label_x_start, label_y_start, 160, label_height)
         pixmap = QPixmap("images/options/music.png")
         scaled_pixmap = pixmap.scaled(self.music_label.width(), self.music_label.height())
         self.music_label.setPixmap(scaled_pixmap)
@@ -75,6 +106,9 @@ class SettingsPage(QWidget):
             QSlider::handle:horizontal:hover {{
                 background: rgba(240, 178, 39, 200);
             }}
+            QSlider:focus {{
+                border: 2px solid rgba(240, 178, 39, 230);
+            }}
             """)
             
         self.music_slider = QSlider(Qt.Horizontal, self)
@@ -83,17 +117,19 @@ class SettingsPage(QWidget):
         self.music_slider.setMaximum(100)
         self.music_slider.setValue(80)
         apply_slider_style(self.music_slider)
+        self.music_slider.setFocusPolicy(Qt.StrongFocus)
         
         
-        # zmieniający się procent głosności, ale mi się nie podoba czcionka 
+        # zmieniający się procent głosności, ale mi się nie podoba czcionka
         # self.music_value_label = QLabel("80%", self)
         # self.music_value_label.setStyleSheet("font-size: 24px; color: rgba(240, 178, 39, 200);")
         # self.music_value_label.setGeometry(950, 165, 70, 30)
         # self.music_slider.valueChanged.connect(lambda v: self.music_value_label.setText(f"{v}%"))
         
-         # --- BRIGHTNESS SLIDER ---
+        
+        # --- BRIGHTNESS SLIDER ---
         self.brightness_label = QLabel(self)
-        self.brightness_label.setGeometry(350, 270, 263, 43)
+        self.brightness_label.setGeometry(label_x_start, label_y_start+label_height+margin, 263, label_height)
         pixmap = QPixmap("images/options/brightness.png")
         scaled_pixmap = pixmap.scaled(self.brightness_label.width(), self.brightness_label.height())
         self.brightness_label.setPixmap(scaled_pixmap)
@@ -105,24 +141,25 @@ class SettingsPage(QWidget):
         self.brightness_slider.setValue(100)
         self.brightness_slider.valueChanged.connect(self.update_brightness)
         apply_slider_style(self.brightness_slider)
+        self.brightness_slider.setFocusPolicy(Qt.StrongFocus)
         
         
         # --- DIFFICULTY LEVEL ---
         
         self.difficulty_label = QLabel(self)
-        self.difficulty_label.setGeometry((screen_width-395)//2, 370, 400, 47)
+        self.difficulty_label.setGeometry((screen_width-395)//2, label_y_start+2*label_height+2*margin, 400, label_height)
         pixmap = QPixmap("images/options/select_difficulty.png")
         scaled_pixmap = pixmap.scaled(self.difficulty_label.width(), self.difficulty_label.height())
         self.difficulty_label.setPixmap(scaled_pixmap)
         
         # --- container widget ---
         self.difficulty_container = QWidget(self)
-        self.difficulty_container.setGeometry((screen_width-600)//2, 430, 600, 120)
+        self.difficulty_container.setGeometry((screen_width-700)//2, 430, 700, 120)
+        self.difficulty_container.setFocusPolicy(Qt.StrongFocus)
+
         
         # --- layout ---
         difficulty_layout = QHBoxLayout(self.difficulty_container)
-        difficulty_layout.setSpacing(15)
-        difficulty_layout.setContentsMargins(0, 0, 0, 0)
         
         self.radio_easy = QRadioButton(self.difficulty_container)
         self.radio_medium = QRadioButton(self.difficulty_container)
@@ -160,7 +197,6 @@ class SettingsPage(QWidget):
         apply_radio_style(self.radio_easy, "images/options/easy.png" )
         apply_radio_style(self.radio_medium, "images/options/medium.png" )
         apply_radio_style(self.radio_hard, "images/options/hard.png" )
-        
 
         self.radio_easy.setChecked(True)
         
@@ -173,8 +209,6 @@ class SettingsPage(QWidget):
         self.difficulty_group.addButton(self.radio_medium, 2) 
         self.difficulty_group.addButton(self.radio_hard, 3) 
 
-        
-        
         # --- Back button ---
         btn_back = QPushButton(self)
         btn_back.setGeometry((screen_width-215)//2, 600, 215, 41)
@@ -186,9 +220,11 @@ class SettingsPage(QWidget):
                 border-radius: 10px;
             }
             QPushButton:hover {
-                background-color: orange;
+                background-color: rgba(255, 215, 0, 0.7);
             }
         """)
+        btn_back.setFocusPolicy(Qt.StrongFocus)
+
         
     def get_music_volume(self):
         """Get music volume value (0-100)"""
@@ -201,6 +237,25 @@ class SettingsPage(QWidget):
             """Update main window brightness."""
             if hasattr(self.main_window, "set_brightness"):
                 self.main_window.set_brightness(value)
+    
+    # # --- przełączenie się za pomocą klawiszy ---
+    # to dlaczegoś nie działa :(
+    # def _select_next_radio(self):
+    #     ids = [1, 2, 3]
+    #     current = self.difficulty_group.checkedId()
+    #     next_id = ids[(ids.index(current) + 1) % len(ids)]
+    #     btn = self.difficulty_group.button(next_id)
+    #     btn.setChecked(True)
+    #     btn.setFocus()
+
+    # def _select_prev_radio(self):
+    #     ids = [1, 2, 3]
+    #     current = self.difficulty_group.checkedId()
+    #     prev_id = ids[(ids.index(current) - 1) % len(ids)]
+    #     btn = self.difficulty_group.button(prev_id)
+    #     btn.setChecked(True)
+    #     btn.setFocus()
+
         
         
         
