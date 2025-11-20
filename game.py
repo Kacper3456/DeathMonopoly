@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButton
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
+from game_settings import SettingsPage
 from npc_manager import NPCManager
 from player_manager import PlayerManager
 from action_manager import ActionManager
@@ -95,10 +96,15 @@ class GamePage(QWidget):
         self.playerBox.setGeometry(1100, action_y_start+60, 250, 370)
         self.playerBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
         
-        # --- Currency Box ---
-        self.currencyBox = QLabel(self)
-        self.currencyBox.setGeometry(1100, action_y_start, 250, 40)
-        self.currencyBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
+        # --- Balance Box ---
+        self.balanceBox = QLabel(self)
+        self.balanceBox.setGeometry(1100, action_y_start, 250, 40)
+        self.balanceBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
+        
+        self.balance = QLabel(self.balanceBox)
+        self.balance.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.balance.setFont(QFont("Comic Sans MS", 36))
+        self.balance.setStyleSheet("color: green; padding: 0px; background-color: rgba(128, 0, 128, 0);")
 
         # --- Avatar Box ---
         self.avatarBox = QLabel(self)
@@ -220,6 +226,18 @@ class GamePage(QWidget):
                 }}
             """)
 
+    def init_balance(self, difficulty):
+        if difficulty == 1:
+            self.player_manager.set_player_balance(10000)
+        elif difficulty == 2:
+            self.player_manager.set_player_balance(5000)
+        else:
+            self.player_manager.set_player_balance(1000)
+            
+        self.balance.setText(
+            f"$ {self.player_manager.get_player_balance()}"
+        )
+    
     # --- Update indicator visibility based on scroll position ---
     def updateIndicators(self):
         bar = self.DialogBox.verticalScrollBar()
@@ -261,6 +279,7 @@ class GamePage(QWidget):
         self.dialogText.setText(dialogue_text)
         
         self.DialogBox.verticalScrollBar().setValue(0)
+        self.npc_manager.unselect_npc()
         
     def update_npc_display(self, index):
         
@@ -307,8 +326,8 @@ class GamePage(QWidget):
             self.DialogBox.verticalScrollBar().setValue(0)
             
             # Pokaż awatar gracza
-            if not self.player_avatar_pixmap.isNull():
-                scaled_pixmap = self.player_avatar_pixmap.scaled(
+            if not self.avatar_image.isNull():
+                scaled_pixmap = self.avatar_image.scaled(
                     self.avatar_image.width(), self.avatar_image.height(),
                     Qt.AspectRatioMode.KeepAspectRatio, 
                     Qt.TransformationMode.SmoothTransformation

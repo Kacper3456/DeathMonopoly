@@ -71,10 +71,8 @@ class NPCManager:
         return self.npc_widgets
     
     def on_npc_clicked(self, index):
-        
         # Odznacz poprzedniego
-        if self.selected_index is not None:
-            self.npc_widgets[self.selected_index].set_selected(False)
+        self.unselect_npc()
         
         # Zaznacz nowego
         self.selected_index = index
@@ -89,3 +87,8 @@ class NPCManager:
         if 0 <= index < len(self.npc_data_list):
             return self.npc_data_list[index]
         return None
+    
+    def unselect_npc(self):
+        if self.selected_index is not None:
+            self.npc_widgets[self.selected_index].set_selected(False)
+            self.selected_index = None

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QLabel, QMenu
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QAction
 from PySide6.QtCore import Signal, Qt, QPoint
 import random
 
@@ -16,11 +16,17 @@ class ActionManager:
     def __init__(self):
         # Opcje dostępne w menu
         self.options = {
-            "easy": "images/options/easy.png",
-            "hard": "images/options/hard.png",
-            "las": "images/options/las.png",
-            "music": "images/options/music.png",
-            "medium": "images/options/medium.png",
+            "AAPL": "images/stocks/apple_logo.png",
+            "GOOG": "images/stocks/google_logo.png",
+            "MSFT": "images/stocks/microsoft_logo.png",
+            "NVDA": "images/stocks/nvidia_logo.png",
+            "AMZN": "images/stocks/amazon_logo.png",
+            "TSLA": "images/stocks/tesla_logo.png",
+            "META": "images/stocks/meta_logo.png",
+            "CSCO": "images/stocks/cisco_logo.png",
+            "PEP": "images/stocks/pepsico_logo.png",
+            "NFLX": "images/stocks/netflix_logo.png",
+            "EA": "images/stocks/ea_logo.png",
         }
         
         # Współrzędne dla opcji akcyjnych - ZMNIEJSZONE
@@ -66,20 +72,21 @@ class ActionManager:
         for i, (x, y) in enumerate(positions, 1):
             action = ClickableLabel("START", parent)
             action.setGeometry(x, y, self.action_width, self.action_height)
+            action.setScaledContents(True)
+            action.setAlignment(Qt.AlignmentFlag.AlignCenter)  
             action.setProperty("action_index", i - 1)  # Zapisz indeks
             
             # Załaduj placeholder
             pixmap = QPixmap("images/game_window/placeholder.png")
-            scaled_pixmap = pixmap.scaled(
-                action.width(), action.height(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            action.setPixmap(scaled_pixmap)
-            
+            action.setPixmap(pixmap)
             self.action_widgets.append(action)
         
         return self.action_widgets
+    
+    def get_available_options(self):
+        #Zwraca listę opcji, które jeszcze nie zostały wybrane
+        return [name for name in self.options.keys() 
+                if name not in self.selected_actions]
     
     def show_action_menu(self, target_label, parent_widget):
         """
@@ -90,10 +97,19 @@ class ActionManager:
             parent_widget: Widget rodzic dla menu
         """
         menu = QMenu(parent_widget)
+        action_index = target_label.property("action_index")
+        current_selection = self.selected_actions[action_index]
+
         
         # Dodaj opcje do menu
         for name in self.options.keys():
-            menu.addAction(name)
+            action = QAction(name, menu)
+            
+            # Jeśli opcja jest już wybrana w innym miejscu (ale nie w tym)
+            if name in self.selected_actions and name != current_selection:
+                action.setEnabled(False)  # Zablokuj opcję (będzie szara)
+            
+            menu.addAction(action)
         
         # Pokaż menu pod klikniętym labelem
         pos = target_label.mapToGlobal(QPoint(0, target_label.height()))
@@ -105,12 +121,7 @@ class ActionManager:
             image_path = self.options.get(choice)
             if image_path:
                 pixmap = QPixmap(image_path)
-                scaled_pixmap = pixmap.scaled(
-                    target_label.width(), target_label.height(),
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
-                )
-                target_label.setPixmap(scaled_pixmap)
+                target_label.setPixmap(pixmap)
                 
                 # Zapisz wybór
                 action_index = target_label.property("action_index")
@@ -118,19 +129,22 @@ class ActionManager:
     
     def randomize_actions(self):
         """Losowo wybiera opcje dla wszystkich 6 akcji"""
+        # Sprawdź czy mamy wystarczająco opcji
+        if len(self.options) < 6:
+            print("Zbyt mało opcji do losowania!")
+            return
+            
+             # Losuj 6 unikalnych opcji
+        available_choices = list(self.options.keys())
+        selected_choices = random.sample(available_choices, 6)
+        
         for i, action_widget in enumerate(self.action_widgets):
-            # Losuj opcję
-            choice = random.choice(list(self.options.keys()))
+            choice = selected_choices[i]
             image_path = self.options[choice]
             
             # Ustaw obrazek
             pixmap = QPixmap(image_path)
-            scaled_pixmap = pixmap.scaled(
-                action_widget.width(), action_widget.height(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            action_widget.setPixmap(scaled_pixmap)
+            action_widget.setPixmap(pixmap)
             
             # Zapisz wybór
             self.selected_actions[i] = choice
@@ -145,12 +159,7 @@ class ActionManager:
         self.selected_actions = [None] * 6
         for action_widget in self.action_widgets:
             pixmap = QPixmap("images/game_window/placeholder.png")
-            scaled_pixmap = pixmap.scaled(
-                action_widget.width(), action_widget.height(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            action_widget.setPixmap(scaled_pixmap)
+            action_widget.setPixmap(pixmap)
     
     def add_option(self, name, image_path):
         self.options[name] = image_path
