@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButton
+from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButton, QMessageBox
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
 from game_settings import SettingsPage
@@ -24,6 +24,9 @@ class GamePage(QWidget):
         # --- zarządzanie opcjami akcyjnymi ---
         self.action_manager = ActionManager()
 
+        # --- Licznik tur ---
+        self.turn_counter = 0
+        self.max_turns = 10
 
         # --- współrzędne dla Opcji akcyjnych ---
         action_x_start = self.action_manager.action_x_start
@@ -102,8 +105,8 @@ class GamePage(QWidget):
         self.balanceBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
         
         self.balance = QLabel(self.balanceBox)
-        self.balance.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        self.balance.setFont(QFont("Comic Sans MS", 36))
+        self.balance.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        self.balance.setFont(QFont("Comic Sans MS", 30))
         self.balance.setStyleSheet("color: green; padding: 0px; background-color: rgba(128, 0, 128, 0);")
 
         # --- Avatar Box ---
@@ -160,14 +163,21 @@ class GamePage(QWidget):
         self.dialogText.setFont(QFont("Helvetica", 20))
         self.dialogText.setStyleSheet("color: white; padding: 10px; background-color: rgba(128, 0, 128, 0);")
 
-        # Example long text
+        # wstępny text
         self.dialogText.setText(
-            "This is a long dialogue text that will scroll if it exceeds the visible area.\n\n"
-            "You can add multiple paragraphs of dialogue here.\n\n"
-            "Each line will wrap automatically, and the scrollbar will appear when needed.\n\n"
-            + "Line\n" * 30
+            "<b style='color: rgb(255, 215, 0); font-size: 24px;'>Welcome to the simulation for beginner investors.</b><br>"
+            "It's time for your first market lesson.<br><br>"
+            "<b style='color: rgb(255, 215, 0);'>Balance:</b><br>"
+            "You can see your current balance at the top of the screen. You can change it in the settings (higher difficulty = less starting capital).<br><br>"
+            "<b style='color: rgb(255, 215, 0);'>Selection:</b><br>"
+            "You now need to choose 6 companies and specify how much money you will invest in them. Changes are possible later!<br><br>"
+            "<b style='color: rgb(255, 215, 0);'>Advice:</b><br>"
+            "On the right side, you will find My Friends. Listen to their advice, but remember – the decision is yours.<br><br>"
+            "<b style='color: rgb(255, 215, 0);'>Goal:</b><br>"
+            "You have 10 rounds. Try not to go bankrupt.<br><br>"
+            "<b style='color: rgb(100, 255, 100); font-size: 36px;'>Good luck!!</b><br><br>"         
         )
-
+        
         # Add text to box
         self.DialogBox.setWidget(self.dialogText)
 
@@ -305,7 +315,6 @@ class GamePage(QWidget):
         self.DialogBox.verticalScrollBar().setValue(0)
 
     def show_action_menu(self, target_label):
-        """Deleguje pokazanie menu do ActionManager"""
         self.action_manager.show_action_menu(target_label, self)
         
     def randomize_actions(self):
@@ -335,6 +344,8 @@ class GamePage(QWidget):
                 self.avatar_image.setPixmap(scaled_pixmap)
         else:
             self.game_started = True
+            self.turn_counter = 0
+            self.update_turn_display()
             
             # Ukryj Random i Start, pokaż Continue
             self.btn_random.hide()
@@ -351,10 +362,93 @@ class GamePage(QWidget):
             self.DialogBox.verticalScrollBar().setValue(0)
     
     def continue_game(self):
-        # Tutaj możesz dodać logikę kontynuacji gry
-        player_data = self.player_manager.get_player_data()
-        continue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-        continue_text += "continues..."
+        # Zwiększ licznik tur
+        self.turn_counter += 1
+        self.update_turn_display()
         
-        self.dialogText.setText(continue_text)
+        # Sprawdź czy to już 10. tura
+        if self.turn_counter >= self.max_turns:
+            self.game_over()
+        else:
+            # Kontynuuj grę normalnie
+            player_data = self.player_manager.get_player_data()
+            continue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+            continue_text += f"Turn {self.turn_counter} of {self.max_turns}<br><br>"
+            continue_text += "continues..."
+            
+            self.dialogText.setText(continue_text)
+            self.DialogBox.verticalScrollBar().setValue(0)
+    
+    def game_over(self):
+        """Wyświetla okno Game Over i resetuje grę"""
+        player_data = self.player_manager.get_player_data()
+        final_balance = self.player_manager.get_player_balance()
+        
+        # Stwórz customowe okno dialogowe
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Game Over")
+        msg_box.setText("GAME OVER")
+        msg_box.setInformativeText(
+            f"Congratulations, {player_data['name']}!\n\n"
+            f"You've completed all {self.max_turns} turns.\n"
+            f"Final Balance: ${final_balance}\n\n"
+            f"What would you like to do?"
+        )
+        
+        # Dodaj przyciski
+        btn_menu = msg_box.addButton("Return to Menu", QMessageBox.AcceptRole)
+        btn_restart = msg_box.addButton("Play Again", QMessageBox.ActionRole)
+        
+        # Ustaw styl dla okna dialogowego
+        msg_box.setStyleSheet("""
+            QMessageBox {
+                background-color: rgb(38, 39, 59);
+            }
+            QMessageBox QLabel {
+                color: white;
+                font-size: 16px;
+            }
+            QPushButton {
+                background-color: rgb(255, 215, 0);
+                color: black;
+                font-weight: bold;
+                padding: 8px 16px;
+                border-radius: 5px;
+                min-width: 100px;
+            }
+            QPushButton:hover {
+                background-color: rgb(255, 235, 50);
+            }
+        """)
+        
+        msg_box.exec()
+        
+        # Sprawdź który przycisk został kliknięty
+        if msg_box.clickedButton() == btn_menu:
+            self.main_window.show_menu()
+        else:
+            self.reset_game()
+    
+    def reset_game(self):
+        """Resetuje grę do stanu początkowego"""
+        self.game_started = False
+        self.turn_counter = 0
+        self.update_turn_display()
+        
+        # Wyczyść wybrane akcje i przywróć placeholder
+        self.action_manager.reset_selections()
+        
+        # Pokaż przyciski Random i Start, ukryj Continue
+        self.btn_random.show()
+        self.btn_start.show()
+        self.btn_continue.hide()
+        
+        # Pokaż postać gracza
+        self.show_player_character()
+        
+        player_data = self.player_manager.get_player_data()
+        reset_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+        reset_text += "Ready for a new game! Select your actions and press Start."
+        
+        self.dialogText.setText(reset_text)
         self.DialogBox.verticalScrollBar().setValue(0)

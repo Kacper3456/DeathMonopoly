@@ -49,11 +49,11 @@ class NPCManager:
     
     def __init__(self):
         self.npc_data_list = [
-            {"name": "BORIS", "avatar": "images/game_window/avatar/russian_spy.png", "dialogue": "Jestem Boris i oczywiście NIE jestem ruskim szpiegiem i NIE chcę ukraść wszystkich Twoich pieniędzy"},
+            {"name": "BORIS", "avatar": "images/game_window/avatar/russian_spy.png", "dialogue": "I am Boris and of course I am NOT a Russian spy and I do NOT want to steal all your money"},
             {"name": "WARIO", "avatar": "images/game_window/avatar/wario.png", "dialogue": "Relax, take-a the spaghetti, life is good"},
-            {"name": "ALBEDO", "avatar": "images/game_window/avatar/succubus.png", "dialogue": "Powiedz tylko słowo, a przygotuję strategię tak doskonałą, że nawet demony z otchłani nie odważą się zakwestionować Twojej dominacji na rynku"},
-            {"name": "GERALT", "avatar": "images/game_window/avatar/geralt.png", "dialogue": "Potwory? Trendy? Bańki spekulacyjne? Żaden problem. Tylko miej na uwadze — jak się coś sypnie, to nie moja wina. To świat jest popsuty, nie ja"},
-            {"name": "JADWIDA", "avatar": "images/game_window/avatar/queen.png", "dialogue": "Czasem dobrze spojrzeć, jak tłum śmiertelników panikuje na rynku. To przynajmniej bywa zabawne. Ale skoro już tu jesteś, może opowiesz mi, w co zamierzasz inwestować?"}
+            {"name": "ALBEDO", "avatar": "images/game_window/avatar/succubus.png", "dialogue": "Just say the word, and I will prepare a strategy so perfect that even the demons of the abyss won't dare to question your market dominance"},
+            {"name": "GERALT", "avatar": "images/game_window/avatar/geralt.png", "dialogue": "Monsters? Trends? Speculative bubbles? No problem. Just keep in mind—if something goes wrong, it's not my fault. The world is broken, not me"},
+            {"name": "JADWIDA", "avatar": "images/game_window/avatar/queen.png", "dialogue": "Sometimes it's good to watch how the mortal crowd panics on the market. At least that can be entertaining. But since you are already here, maybe you can tell me what you intend to invest in?"}
         ]
         
         self.npc_widgets = []
