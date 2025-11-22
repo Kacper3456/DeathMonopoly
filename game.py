@@ -1,11 +1,30 @@
-from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButton, QMessageBox
+from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButton, QMessageBox, QDialog, QVBoxLayout, \
+    QApplication
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
 from game_settings import SettingsPage
 from npc_manager import NPCManager
 from player_manager import PlayerManager
 from action_manager import ActionManager
+from stock_data import get_data, get_data_chart, clear_stock_files
 
+
+class LoadingDialog(QDialog):
+    def __init__(self, message="Loading..."):
+        super().__init__()
+        self.setWindowTitle("Please wait")
+        self.setModal(True)
+        self.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint)
+
+        label = QLabel(message)
+        label.setAlignment(Qt.AlignCenter)
+
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        self.setLayout(layout)
+
+        # show busy cursor
+        self.setCursor(Qt.BusyCursor)
 
 class ClickableLabel(QLabel):
     clicked = Signal()
@@ -50,7 +69,9 @@ class GamePage(QWidget):
         # Podłącz sygnały kliknięcia dla każdej akcji
         for action_widget in self.action_widgets:
             action_widget.clicked.connect(
-                lambda checked=False, widget=action_widget: self.action_manager.show_action_menu(widget, self)
+                lambda checked=False, widget=action_widget: (
+                    None if self.game_started else self.action_manager.show_action_menu(widget, self)
+                )
             )
             
         def apply_button_style(button, image_path):
@@ -320,6 +341,29 @@ class GamePage(QWidget):
     def randomize_actions(self):
         """Losuje opcje dla wszystkich akcji"""
         self.action_manager.randomize_actions()
+
+    def update_stock_charts_for_turn(self):
+        """
+        Shows a loading dialog, fetches stock data for the current turn,
+        generates charts, and updates the action widgets with the new charts.
+        """
+        loading = LoadingDialog("Downloading stock data...\nThis may take a moment.")
+        loading.show()
+        QApplication.processEvents()
+
+        # Get selected companies
+        selected_companies = self.action_manager.get_selected_actions()
+        turn = self.turn_counter
+
+        # Generate data and charts
+        get_data(selected_companies, turn)
+        for company in selected_companies:
+            get_data_chart(company)
+
+        # Update the action widgets with new chart images
+        self.action_manager.update_selected_action_charts()
+
+        loading.close()
     
     def start_game(self):
         if not self.action_manager.all_actions_selected():
@@ -345,8 +389,10 @@ class GamePage(QWidget):
         else:
             self.game_started = True
             self.turn_counter = 0
-            self.update_turn_display()
-            
+            #self.update_turn_display()
+
+            self.update_stock_charts_for_turn()
+
             # Ukryj Random i Start, pokaż Continue
             self.btn_random.hide()
             self.btn_start.hide()
@@ -364,7 +410,7 @@ class GamePage(QWidget):
     def continue_game(self):
         # Zwiększ licznik tur
         self.turn_counter += 1
-        self.update_turn_display()
+        #self.update_turn_display()
         
         # Sprawdź czy to już 10. tura
         if self.turn_counter >= self.max_turns:
@@ -378,6 +424,8 @@ class GamePage(QWidget):
             
             self.dialogText.setText(continue_text)
             self.DialogBox.verticalScrollBar().setValue(0)
+            self.update_stock_charts_for_turn()
+
     
     def game_over(self):
         """Wyświetla okno Game Over i resetuje grę"""
@@ -433,7 +481,8 @@ class GamePage(QWidget):
         """Resetuje grę do stanu początkowego"""
         self.game_started = False
         self.turn_counter = 0
-        self.update_turn_display()
+        #self.update_turn_display()
+        clear_stock_files()
         
         # Wyczyść wybrane akcje i przywróć placeholder
         self.action_manager.reset_selections()

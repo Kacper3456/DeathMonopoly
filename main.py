@@ -4,6 +4,7 @@ from menu import MenuPage
 from game import GamePage
 from game_settings import SettingsPage, BrightnessOverlay
 import sys
+from stock_data import clear_stock_files
 
 
 class MainWindow(QMainWindow):
@@ -79,8 +80,13 @@ class MainWindow(QMainWindow):
         if hasattr(self, "brightness_overlay"):
             self.brightness_overlay.resize(self.size())
 
+    # --- usuwa wygenerowane pliki podczas gry ---
+    def closeEvent(self, event):
+        clear_stock_files()  # delete CSV and chart files
+        event.accept()
 
-# --- aplikacja ---
+
+    # --- aplikacja ---
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
