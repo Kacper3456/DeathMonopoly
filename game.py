@@ -342,7 +342,7 @@ class GamePage(QWidget):
         """Losuje opcje dla wszystkich akcji"""
         self.action_manager.randomize_actions()
 
-    def update_stock_charts_for_turn(self):
+    def update_turn_display(self):
         """
         Shows a loading dialog, fetches stock data for the current turn,
         generates charts, and updates the action widgets with the new charts.
@@ -362,6 +362,18 @@ class GamePage(QWidget):
 
         # Update the action widgets with new chart images
         self.action_manager.update_selected_action_charts()
+
+        #Update the NPC Dialouge
+        wario_index = next(
+            (i for i, npc in enumerate(self.npc_manager.npc_data_list) if npc["name"].upper() == "WARIO"),
+            None
+        )
+        if wario_index is not None:
+            self.npc_manager.update_dialog_ai(
+                wario_index,
+                player_balance=self.player_manager.get_player_balance(),
+                selected_companies=self.action_manager.get_selected_actions()
+            )
 
         loading.close()
     
@@ -389,9 +401,7 @@ class GamePage(QWidget):
         else:
             self.game_started = True
             self.turn_counter = 0
-            #self.update_turn_display()
-
-            self.update_stock_charts_for_turn()
+            self.update_turn_display()
 
             # Ukryj Random i Start, pokaż Continue
             self.btn_random.hide()
@@ -403,6 +413,7 @@ class GamePage(QWidget):
             start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
             start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
             start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
+
             
             self.dialogText.setText(start_text)
             self.DialogBox.verticalScrollBar().setValue(0)
@@ -410,7 +421,7 @@ class GamePage(QWidget):
     def continue_game(self):
         # Zwiększ licznik tur
         self.turn_counter += 1
-        #self.update_turn_display()
+        self.update_turn_display()
         
         # Sprawdź czy to już 10. tura
         if self.turn_counter >= self.max_turns:
@@ -424,7 +435,6 @@ class GamePage(QWidget):
             
             self.dialogText.setText(continue_text)
             self.DialogBox.verticalScrollBar().setValue(0)
-            self.update_stock_charts_for_turn()
 
     
     def game_over(self):

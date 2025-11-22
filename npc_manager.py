@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QLabel
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
+from AI import ask_bot
 
 
 class NPCWidget(QWidget):
@@ -92,3 +93,24 @@ class NPCManager:
         if self.selected_index is not None:
             self.npc_widgets[self.selected_index].set_selected(False)
             self.selected_index = None
+
+    def update_dialog_ai(self, index, player_balance=None, selected_companies=None):
+        """
+        Updates the 'dialogue' field of the NPC at `index` using AI.
+        This does not touch GUI; GamePage.update_npc_display will show the new text automatically.
+        """
+        if not (0 <= index < len(self.npc_data_list)):
+            return
+
+        # Prepare input for AI
+        question = ""
+        if player_balance is not None:
+            question += f"Budget: {player_balance}\n"
+        if selected_companies is not None:
+            question += f"Selected companies: {', '.join(selected_companies)}"
+
+        # Generate AI response
+        ai_response = ask_bot(question)
+
+        # Update the NPC dialogue
+        self.npc_data_list[index]['dialogue'] = ai_response
