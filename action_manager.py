@@ -173,3 +173,12 @@ class ActionManager:
     
     def get_selected_actions(self):
         return self.selected_actions
+
+    def update_selected_action_charts(self):
+        """Zamienia obrazki wybranych akcji na wygenerowane wykresy."""
+        for i, choice in enumerate(self.selected_actions):
+            if choice:
+                chart_path = f"Stock_charts/{choice}_chart.png"
+                pixmap = QPixmap(chart_path)
+                if not pixmap.isNull():
+                    self.action_widgets[i].setPixmap(pixmap)
