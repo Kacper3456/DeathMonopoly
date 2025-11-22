@@ -103,7 +103,7 @@ class NPCManager:
             return
 
         # Prepare input for AI
-        question = ""
+        question = "Based on budget and the data from selected companies choose what to invest in. remember to be biased for japanese and italian related companies"
         if player_balance is not None:
             question += f"Budget: {player_balance}\n"
         if selected_companies is not None:

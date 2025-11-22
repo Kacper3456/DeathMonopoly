@@ -23,7 +23,7 @@ personalities = {
         "system_message":
             "You are an AI for stock betting veideo game."
             "You will recive data about chosen stocks as tables of dates and stock prizes. You will also recive information about your budget"
-            "You should allways spend all your budget and invest at least 1$ to each company but invest most money in the company you think is the best"
+            "You should allways spend all your budget and invest at least 1$ to each company"
             "You need to only provide an answer in the format:\n"
             "$company\n#price\n"
             "The company should be replaced with company name and price with how much you want to invest",

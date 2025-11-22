@@ -371,7 +371,7 @@ class GamePage(QWidget):
         if wario_index is not None:
             self.npc_manager.update_dialog_ai(
                 wario_index,
-                player_balance=self.player_manager.get_player_balance(),
+                player_balance=10000,
                 selected_companies=self.action_manager.get_selected_actions()
             )
 
