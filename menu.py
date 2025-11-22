@@ -7,7 +7,6 @@ class MenuPage(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        
         # --- współrzędne dla przycisków ---
         buttons_x_start = 500
         buttons_y_start = 390
