@@ -4,9 +4,12 @@
 Następujące biblioteki są wymagane do uruchomienia projektu
 * `dotenv>=0.9.9`
 * `pyside6>=6.10.0`
-* `openai>=2.7.2`
+* `openai>=2.8.1`
+* `yfinance>=0.2.66`
+* `matplotlib>=3.10.7`
 
 Lista wszystkich bibliotek znajduje się w pliku `pyproject.toml`
+biblioteki wymagane można zainstalować automatycznie porzez wykonanie komendy `pip install -r requirements.txt`
 
 
 # Środowisko python
