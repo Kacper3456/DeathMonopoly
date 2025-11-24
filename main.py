@@ -17,8 +17,9 @@ class MainWindow(QMainWindow):
         self.screen_width = screen.width()
         self.screen_height = screen.height()
 
-        # --- pełny ekran ---
-        self.showFullScreen()
+        # --- Ustawianie wielkości ekranu --
+        #self.showFullScreen() -- pełny ekran
+        self.setFixedSize(1368, 768)
 
         # --- stos stron ---
         self.stacked_widget = QStackedWidget()
@@ -90,7 +91,7 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
-    window.show()  # pełny ekran uruchamia się automatycznie
+    window.show()
     app.exec()
 
 
