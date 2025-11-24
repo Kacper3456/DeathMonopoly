@@ -11,6 +11,98 @@ class ClickableLabel(QLabel):
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
 
+class ActionWidget(QLabel):
+    valueChanged = Signal(int)
+
+    def __init__(self, parent=None, player_manager=None, balance_label=None):
+        super().__init__(parent)
+
+        self.player_manager = player_manager  # reference to PlayerManager
+        self.balance_label = balance_label    # QLabel to display balance
+
+        self.quantity = 0
+        self.allow_click = True
+
+        # --- Main image label ---
+        self.image_label = ClickableLabel(self)
+        self.image_label.setGeometry(40, 0, 260, 160)
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image_label.setScaledContents(True)
+
+        # --- Minus button ---
+        self.minus_btn = ClickableLabel(self)
+        self.minus_btn.setGeometry(0, 60, 40, 40)
+        self.minus_btn.setText("-")
+        self.minus_btn.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.minus_btn.setStyleSheet("background: #aa4444; color: white; font-size: 20px;")
+        self.minus_btn.clicked.connect(self.decrease_value)
+
+        # --- Plus button ---
+        self.plus_btn = ClickableLabel(self)
+        self.plus_btn.setGeometry(300, 60, 40, 40)
+        self.plus_btn.setText("+")
+        self.plus_btn.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.plus_btn.setStyleSheet("background: #44aa44; color: white; font-size: 20px;")
+        self.plus_btn.clicked.connect(self.increase_value)
+
+        # --- Value label ---
+        self.value_label = QLabel("0", self)
+        self.value_label.setGeometry(0, 160, 340, 20)
+        self.value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.value_label.setStyleSheet("font-size: 18px;")
+
+    # -----------------------------------
+    # Zmiana wartości
+    # -----------------------------------
+    def increase_value(self):
+        if not self.allow_click or not self.player_manager:
+            return
+
+        player_balance = self.player_manager.get_player_balance()
+        if player_balance >= 100:  # adjust 100 if needed
+            self.quantity += 100
+            self.value_label.setText(str(self.quantity))
+
+            # Decrease balance in PlayerManager
+            self.player_manager.set_player_balance(player_balance - 100)
+
+            # Update balance display
+            if self.balance_label:
+                self.balance_label.setText(f"$ {self.player_manager.get_player_balance()}")
+
+    def decrease_value(self):
+        if not self.allow_click or not self.player_manager:
+            return
+
+        if self.quantity > 0:
+            self.quantity -= 100
+            self.value_label.setText(str(self.quantity))
+
+            # Refund money in PlayerManager
+            player_balance = self.player_manager.get_player_balance()
+            self.player_manager.set_player_balance(player_balance + 100)
+
+            # Update balance display
+            if self.balance_label:
+                self.balance_label.setText(f"$ {self.player_manager.get_player_balance()}")
+
+    # -----------------------------------
+    # Ustawianie obrazka
+    # -----------------------------------
+    def set_pixmap(self, pixmap: QPixmap):
+        self.image_label.setPixmap(pixmap)
+
+    def hide_controls(self):
+        self.plus_btn.hide()
+        self.minus_btn.hide()
+
+    def show_controls(self):
+        self.quantity = 0
+        self.value_label.setText(str(self.quantity))
+
+        self.plus_btn.show()
+        self.minus_btn.show()
+
 
 class ActionManager:
     def __init__(self):
@@ -41,46 +133,32 @@ class ActionManager:
         
         # Śledzenie wyborów gracza (None = nie wybrano, string = wybrana opcja)
         self.selected_actions = [None] * 6
-    
-    def create_action_widgets(self, parent):
-        """
-        Tworzy 6 opcji akcyjnych i zwraca je jako listę
-        
-        Args:
-            parent: Widget rodzic (menu_box)
-        
-        Returns:
-            Lista widgetów ClickableLabel
-        """
+
+    def create_action_widgets(self, parent, player_manager=None, balance_label=None):
         self.action_widgets = []
-        
-        # Definicja pozycji dla każdej opcji
+
         positions = [
-            # Górny rząd
             (self.action_x_start, self.action_y_start),
             (self.action_x_start + self.action_width + self.action_padding, self.action_y_start),
             (self.action_x_start + 2 * self.action_width + 2 * self.action_padding, self.action_y_start),
-            # Dolny rząd
             (self.action_x_start, self.action_y_start + self.action_height + self.action_padding),
-            (self.action_x_start + self.action_width + self.action_padding, 
+            (self.action_x_start + self.action_width + self.action_padding,
              self.action_y_start + self.action_height + self.action_padding),
-            (self.action_x_start + 2 * self.action_width + 2 * self.action_padding, 
+            (self.action_x_start + 2 * self.action_width + 2 * self.action_padding,
              self.action_y_start + self.action_height + self.action_padding),
         ]
-        
-        # Tworzenie widgetów
-        for i, (x, y) in enumerate(positions, 1):
-            action = ClickableLabel("START", parent)
+
+        for i, (x, y) in enumerate(positions):
+            action = ActionWidget(parent, player_manager=player_manager, balance_label=balance_label)
             action.setGeometry(x, y, self.action_width, self.action_height)
-            action.setScaledContents(True)
-            action.setAlignment(Qt.AlignmentFlag.AlignCenter)  
-            action.setProperty("action_index", i - 1)  # Zapisz indeks
-            
-            # Załaduj placeholder
+            action.setProperty("action_index", i)
+            action.image_label.setProperty("action_index", i)
+
             pixmap = QPixmap("images/game_window/placeholder.png")
-            action.setPixmap(pixmap)
+            action.set_pixmap(pixmap)
+
             self.action_widgets.append(action)
-        
+
         return self.action_widgets
     
     def get_available_options(self):
@@ -98,6 +176,9 @@ class ActionManager:
         """
         menu = QMenu(parent_widget)
         action_index = target_label.property("action_index")
+        if action_index is None:
+            print("Warning: action_index is None for the clicked label.")
+            return
         current_selection = self.selected_actions[action_index]
 
         
@@ -144,7 +225,7 @@ class ActionManager:
             
             # Ustaw obrazek
             pixmap = QPixmap(image_path)
-            action_widget.setPixmap(pixmap)
+            action_widget.set_pixmap(pixmap)
             
             # Zapisz wybór
             self.selected_actions[i] = choice
@@ -159,7 +240,7 @@ class ActionManager:
         self.selected_actions = [None] * 6
         for action_widget in self.action_widgets:
             pixmap = QPixmap("images/game_window/placeholder.png")
-            action_widget.setPixmap(pixmap)
+            action_widget.set_pixmap(pixmap)
     
     def add_option(self, name, image_path):
         self.options[name] = image_path
@@ -181,4 +262,4 @@ class ActionManager:
                 chart_path = f"Stock_charts/{choice}_chart.png"
                 pixmap = QPixmap(chart_path)
                 if not pixmap.isNull():
-                    self.action_widgets[i].setPixmap(pixmap)
+                    self.action_widgets[i].image_label.setPixmap(pixmap)

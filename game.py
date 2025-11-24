@@ -63,16 +63,6 @@ class GamePage(QWidget):
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
         self.menu_box.setGeometry(0,0, 1100, 800)
 
-         # --- Tworzenie opcji akcyjnych za pomocą ActionManager ---
-        self.action_widgets = self.action_manager.create_action_widgets(self.menu_box)
-        
-        # Podłącz sygnały kliknięcia dla każdej akcji
-        for action_widget in self.action_widgets:
-            action_widget.clicked.connect(
-                lambda checked=False, widget=action_widget: (
-                    None if self.game_started else self.action_manager.show_action_menu(widget, self)
-                )
-            )
             
         def apply_button_style(button, image_path):
             button.setStyleSheet(f"""
@@ -124,11 +114,29 @@ class GamePage(QWidget):
         self.balanceBox = QLabel(self)
         self.balanceBox.setGeometry(1100, action_y_start, 250, 40)
         self.balanceBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
-        
+
         self.balance = QLabel(self.balanceBox)
         self.balance.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         self.balance.setFont(QFont("Comic Sans MS", 30))
-        self.balance.setStyleSheet("color: green; padding: 0px; background-color: rgba(128, 0, 128, 0);")
+        self.balance.setStyleSheet("color: red; padding: 0px; background-color: rgba(128, 0, 128, 0);")
+
+        # Initialize label with current balance
+        self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
+
+         # --- Tworzenie opcji akcyjnych za pomocą ActionManager ---
+        self.action_widgets = self.action_manager.create_action_widgets(
+            parent=self.menu_box,
+            player_manager=self.player_manager,
+            balance_label=self.balance
+        )
+
+        # Podłącz sygnały kliknięcia dla każdej akcji
+        for action_widget in self.action_widgets:
+            action_widget.image_label.clicked.connect(
+                lambda checked=False, widget=action_widget: (
+                    None if self.game_started else self.action_manager.show_action_menu(widget.image_label, self)
+                )
+            )
 
         # --- Avatar Box ---
         self.avatarBox = QLabel(self)
@@ -362,19 +370,6 @@ class GamePage(QWidget):
 
         # Update the action widgets with new chart images
         self.action_manager.update_selected_action_charts()
-
-        #Update the NPC Dialouge
-        wario_index = next(
-            (i for i, npc in enumerate(self.npc_manager.npc_data_list) if npc["name"].upper() == "WARIO"),
-            None
-        )
-        if wario_index is not None:
-            self.npc_manager.update_dialog_ai(
-                wario_index,
-                player_balance=10000,
-                selected_companies=self.action_manager.get_selected_actions()
-            )
-
         loading.close()
     
     def start_game(self):
@@ -401,6 +396,8 @@ class GamePage(QWidget):
         else:
             self.game_started = True
             self.turn_counter = 0
+            for widget in self.action_manager.action_widgets:
+                widget.hide_controls()
             self.update_turn_display()
 
             # Ukryj Random i Start, pokaż Continue
@@ -494,8 +491,10 @@ class GamePage(QWidget):
         #self.update_turn_display()
         clear_stock_files()
         
-        # Wyczyść wybrane akcje i przywróć placeholder
+        # przywróć domyślne obrazki akcji i guziki
         self.action_manager.reset_selections()
+        for widget in self.action_manager.action_widgets:
+            widget.show_controls()
         
         # Pokaż przyciski Random i Start, ukryj Continue
         self.btn_random.show()
