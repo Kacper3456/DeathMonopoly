@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButt
     QApplication
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
-from game_settings import SettingsPage
 from npc_manager import NPCManager
 from player_manager import PlayerManager
 from action_manager import ActionManager
@@ -45,7 +44,7 @@ class GamePage(QWidget):
 
         # --- Licznik tur ---
         self.turn_counter = 0
-        self.max_turns = 10
+        self.max_turns = 3
 
         # --- współrzędne dla Opcji akcyjnych ---
         action_x_start = self.action_manager.action_x_start
@@ -118,7 +117,7 @@ class GamePage(QWidget):
         self.balance = QLabel(self.balanceBox)
         self.balance.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         self.balance.setFont(QFont("Comic Sans MS", 30))
-        self.balance.setStyleSheet("color: red; padding: 0px; background-color: rgba(128, 0, 128, 0);")
+        self.balance.setStyleSheet("color: green; padding: 0px; background-color: rgba(128, 0, 128, 0);")
 
         # Initialize label with current balance
         self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
@@ -266,16 +265,23 @@ class GamePage(QWidget):
             """)
 
     def init_balance(self, difficulty):
+        if self.game_started:
+            return
+
         if difficulty == 1:
             self.player_manager.set_player_balance(10000)
         elif difficulty == 2:
             self.player_manager.set_player_balance(5000)
         else:
             self.player_manager.set_player_balance(1000)
-            
-        self.balance.setText(
-            f"$ {self.player_manager.get_player_balance()}"
-        )
+
+        # Update balance display
+        self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
+
+        # Reset all action value labels
+        for widget in self.action_manager.action_widgets:
+            widget.quantity = 0
+            widget.value_label.setText("0")
     
     # --- Update indicator visibility based on scroll position ---
     def updateIndicators(self):
@@ -370,6 +376,7 @@ class GamePage(QWidget):
 
         # Update the action widgets with new chart images
         self.action_manager.update_selected_action_charts()
+        self.action_manager.update_value_labels_by_stock()
         loading.close()
     
     def start_game(self):
@@ -386,7 +393,8 @@ class GamePage(QWidget):
             self.DialogBox.verticalScrollBar().setValue(0)
             
             # Pokaż awatar gracza
-            if not self.avatar_image.isNull():
+            pixmap = self.avatar_image.pixmap()
+            if pixmap is not None and not pixmap.isNull():
                 scaled_pixmap = self.avatar_image.scaled(
                     self.avatar_image.width(), self.avatar_image.height(),
                     Qt.AspectRatioMode.KeepAspectRatio, 
@@ -395,6 +403,7 @@ class GamePage(QWidget):
                 self.avatar_image.setPixmap(scaled_pixmap)
         else:
             self.game_started = True
+            self.main_window.settings_page.disable_difficulty_buttons()
             self.turn_counter = 0
             for widget in self.action_manager.action_widgets:
                 widget.hide_controls()
@@ -500,7 +509,10 @@ class GamePage(QWidget):
         self.btn_random.show()
         self.btn_start.show()
         self.btn_continue.hide()
-        
+
+        # Odblokuj wybór poziomu trudności
+        self.main_window.settings_page.enable_difficulty_buttons()
+
         # Pokaż postać gracza
         self.show_player_character()
         

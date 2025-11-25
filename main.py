@@ -63,7 +63,6 @@ class MainWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.menu_page)
 
     def show_game(self):
-        self.game_page.init_balance(self.settings_page.get_difficulty_id())
         self.stacked_widget.setCurrentWidget(self.game_page)
 
     def show_settings(self):

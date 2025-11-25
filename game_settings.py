@@ -171,7 +171,7 @@ class SettingsPage(QWidget):
         self.radio_easy.setFixedSize(button_width, button_height)
         self.radio_medium.setFixedSize(button_width, button_height)
         self.radio_hard.setFixedSize(button_width, button_height)
-        
+
         def apply_radio_style(radio_button, image_path):
             radio_button.setStyleSheet(f"""
                 QRadioButton {{
@@ -207,7 +207,9 @@ class SettingsPage(QWidget):
         self.difficulty_group = QButtonGroup(self)
         self.difficulty_group.addButton(self.radio_easy, 1)   #id:1 
         self.difficulty_group.addButton(self.radio_medium, 2) 
-        self.difficulty_group.addButton(self.radio_hard, 3) 
+        self.difficulty_group.addButton(self.radio_hard, 3)
+        self.difficulty_group.buttonClicked.connect(self.on_difficulty_changed)
+
 
         # --- Back button ---
         btn_back = QPushButton(self)
@@ -232,32 +234,33 @@ class SettingsPage(QWidget):
 
     def get_difficulty_id(self):
         return self.difficulty_group.checkedId()  # zwróci 1, 2, or 3
+
+    def on_difficulty_changed(self):
+        difficulty = self.get_difficulty_id()
+        self.main_window.game_page.init_balance(difficulty)
         
     def update_brightness(self, value):
             """Update main window brightness."""
             if hasattr(self.main_window, "set_brightness"):
                 self.main_window.set_brightness(value)
-    
-    # # --- przełączenie się za pomocą klawiszy ---
-    # to dlaczegoś nie działa :(
-    # def _select_next_radio(self):
-    #     ids = [1, 2, 3]
-    #     current = self.difficulty_group.checkedId()
-    #     next_id = ids[(ids.index(current) + 1) % len(ids)]
-    #     btn = self.difficulty_group.button(next_id)
-    #     btn.setChecked(True)
-    #     btn.setFocus()
 
-    # def _select_prev_radio(self):
-    #     ids = [1, 2, 3]
-    #     current = self.difficulty_group.checkedId()
-    #     prev_id = ids[(ids.index(current) - 1) % len(ids)]
-    #     btn = self.difficulty_group.button(prev_id)
-    #     btn.setChecked(True)
-    #     btn.setFocus()
+    def disable_difficulty_buttons(self):
+        self.radio_easy.blockSignals(True)
+        self.radio_medium.blockSignals(True)
+        self.radio_hard.blockSignals(True)
 
-        
-        
+        self.radio_easy.setEnabled(False)
+        self.radio_medium.setEnabled(False)
+        self.radio_hard.setEnabled(False)
+
+    def enable_difficulty_buttons(self):
+        self.radio_easy.blockSignals(False)
+        self.radio_medium.blockSignals(False)
+        self.radio_hard.blockSignals(False)
+
+        self.radio_easy.setEnabled(True)
+        self.radio_medium.setEnabled(True)
+        self.radio_hard.setEnabled(True)
         
 class BrightnessOverlay(QWidget):
     """A transparent overlay that darkens the whole window."""

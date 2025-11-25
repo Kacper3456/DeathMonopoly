@@ -60,6 +60,32 @@ def get_data_chart(company):
                 dpi=300, bbox_inches="tight")
     plt.close()
 
+def get_price_change(stock_name, folder="stock_data"):
+    """
+    Returns the multiplier based on first and last price in CSV.
+    E.g., if price doubled, returns 2.0
+    """
+    file_path = os.path.join(folder, f"{stock_name}.csv")
+    if not os.path.exists(file_path):
+        print(f"CSV not found for {stock_name}")
+        return 1.0  # default multiplier
+
+    with open(file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        prices = [float(row["Price"]) for row in reader if row.get("Price")]
+
+    if not prices:
+        return 1.0
+
+    start_price = prices[0]
+    end_price = prices[-1]
+
+    if start_price == 0:
+        return 1.0
+
+    multiplier = end_price / start_price
+    return multiplier
+
 def clear_stock_files():
      # Delete CSV files
     for file in glob.glob("Stock_prizes/*_history.csv"):

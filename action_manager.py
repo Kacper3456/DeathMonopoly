@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QLabel, QMenu
 from PySide6.QtGui import QPixmap, QAction
 from PySide6.QtCore import Signal, Qt, QPoint
 import random
+from stock_data import get_price_change
 
 
 class ClickableLabel(QLabel):
@@ -235,12 +236,17 @@ class ActionManager:
     
     def get_missing_count(self):
         return self.selected_actions.count(None)
-    
+
     def reset_selections(self):
         self.selected_actions = [None] * 6
         for action_widget in self.action_widgets:
+            # Reset image to placeholder
             pixmap = QPixmap("images/game_window/placeholder.png")
             action_widget.set_pixmap(pixmap)
+
+            # Reset value label and quantity
+            action_widget.quantity = 0
+            action_widget.value_label.setText("0")
     
     def add_option(self, name, image_path):
         self.options[name] = image_path
@@ -263,3 +269,19 @@ class ActionManager:
                 pixmap = QPixmap(chart_path)
                 if not pixmap.isNull():
                     self.action_widgets[i].image_label.setPixmap(pixmap)
+
+    def update_value_labels_by_stock(self, stock_folder="stock_data"):
+        """
+        Updates each ActionWidget value based on stock performance.
+        """
+        for i, stock_name in enumerate(self.selected_actions):
+            if stock_name is None:
+                continue
+
+            action_widget = self.action_widgets[i]
+            multiplier = get_price_change(stock_name, folder=stock_folder)
+
+            # Update value
+            new_value = int(action_widget.quantity * multiplier)
+            action_widget.quantity = new_value
+            action_widget.value_label.setText(str(new_value))
