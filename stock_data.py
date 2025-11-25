@@ -2,77 +2,91 @@
 import csv
 import os
 import glob
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 import yfinance as yf
 import matplotlib.pyplot as plt
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+
+# Relative paths for CSV and chart directories
+REPO_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_DIR = os.path.join(REPO_DIR, "Stock_prizes")
+CHART_DIR = os.path.join(REPO_DIR, "Stock_charts")
+
+# Ensure directories exist
+os.makedirs(CSV_DIR, exist_ok=True)
+os.makedirs(CHART_DIR, exist_ok=True)
 
 
 def get_turn_dates(turn_counter):
     """
-    Oblicza daty start i end dla danej tury.
-
-    Args:
-        turn_counter (int): aktualna tura (0-based)
-
-    Returns:
-        start_date (str), end_date (str): daty w formacie YYYY-MM-DD
+    Calculate start and end dates for a given turn.
     """
-    # Daty początkowe dla tury 0
     start = datetime(2015, 1, 1)
     end = datetime(2015, 4, 30)
 
-    # Każda tura przesuwa daty o 5 miesięcy
     start += relativedelta(months=5 * turn_counter)
     end += relativedelta(months=5 * turn_counter)
 
-    # Zamiana na string w formacie YYYY-MM-DD
-    start_str = start.strftime("%Y-%m-%d")
-    end_str = end.strftime("%Y-%m-%d")
+    return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
 
-    return start_str, end_str
 
 def get_data(selected_companies, turn_counter):
+    """
+    Download stock data from Yahoo Finance and save as CSV.
+    """
     start_date, end_date = get_turn_dates(turn_counter)
     for company in selected_companies:
-        selected_company = yf.Ticker(company)
-        data = selected_company.history(start=start_date, end=end_date)
-        data.to_csv(f"Stock_prizes/{company}_history.csv")
-        pass
+        ticker = yf.Ticker(company)
+        data = ticker.history(start=start_date, end=end_date)
+
+        csv_file = os.path.join(CSV_DIR, f"{company}_history.csv")
+        data.to_csv(csv_file)
+        print(f"Saved CSV for {company} -> {csv_file}")
+
 
 def get_data_chart(company):
-    data_filename = f"Stock_prizes/{company}_history.csv"
+    """
+    Generate a stock chart from CSV data.
+    """
+    csv_file = os.path.join(CSV_DIR, f"{company}_history.csv")
 
-    with open(data_filename, "r") as file:
-        content = csv.reader(file)
-        date = []
-        price = []
-        next(content)
-        for row in content:
-            date.append(row[0])
-            price.append(float(row[4]))
+    if not os.path.exists(csv_file):
+        print(f"CSV not found for {company}, skipping chart generation.")
+        return
+
+    with open(csv_file, "r") as file:
+        reader = csv.reader(file)
+        header = next(reader)
+        date_idx = header.index("Date")
+        close_idx = header.index("Close")
+
+        dates, prices = [], []
+        for row in reader:
+            dates.append(row[date_idx])
+            prices.append(float(row[close_idx]))
 
     plt.figure()
-    plt.plot(date, price)
+    plt.plot(dates, prices)
     plt.title(f"{company} Stock Price")
-    plt.savefig(f"Stock_charts/{company}_chart.png",
-                dpi=300, bbox_inches="tight")
+    chart_file = os.path.join(CHART_DIR, f"{company}_chart.png")
+    plt.savefig(chart_file, dpi=300, bbox_inches="tight")
     plt.close()
+    print(f"Saved chart for {company} -> {chart_file}")
 
-def get_price_change(stock_name, folder="stock_data"):
+
+def get_price_change(stock_name):
     """
-    Returns the multiplier based on first and last price in CSV.
-    E.g., if price doubled, returns 2.0
+    Returns the multiplier based on first and last closing price in CSV.
     """
-    file_path = os.path.join(folder, f"{stock_name}.csv")
-    if not os.path.exists(file_path):
+    csv_file = os.path.join(CSV_DIR, f"{stock_name}_history.csv")
+    if not os.path.exists(csv_file):
         print(f"CSV not found for {stock_name}")
-        return 1.0  # default multiplier
+        return 1.0
 
-    with open(file_path, newline='') as csvfile:
+    with open(csv_file, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
-        prices = [float(row["Price"]) for row in reader if row.get("Price")]
+        prices = [float(row["Close"]) for row in reader if row.get("Close")]
 
     if not prices:
         return 1.0
@@ -83,19 +97,20 @@ def get_price_change(stock_name, folder="stock_data"):
     if start_price == 0:
         return 1.0
 
-    multiplier = end_price / start_price
-    return multiplier
+    return end_price / start_price
+
 
 def clear_stock_files():
-     # Delete CSV files
-    for file in glob.glob("Stock_prizes/*_history.csv"):
+    """
+    Deletes all CSV and chart files.
+    """
+    for file in glob.glob(os.path.join(CSV_DIR, "*_history.csv")):
         try:
             os.remove(file)
         except OSError:
             pass
 
-    # Delete chart PNG files
-    for file in glob.glob("Stock_charts/*_chart.png"):
+    for file in glob.glob(os.path.join(CHART_DIR, "*_chart.png")):
         try:
             os.remove(file)
         except OSError:

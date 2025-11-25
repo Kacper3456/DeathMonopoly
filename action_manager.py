@@ -4,7 +4,6 @@ from PySide6.QtCore import Signal, Qt, QPoint
 import random
 from stock_data import get_price_change
 
-
 class ClickableLabel(QLabel):
     clicked = Signal()
 
@@ -270,7 +269,7 @@ class ActionManager:
                 if not pixmap.isNull():
                     self.action_widgets[i].image_label.setPixmap(pixmap)
 
-    def update_value_labels_by_stock(self, stock_folder="stock_data"):
+    def update_value_labels_by_stock(self):
         """
         Updates each ActionWidget value based on stock performance.
         """
@@ -279,7 +278,7 @@ class ActionManager:
                 continue
 
             action_widget = self.action_widgets[i]
-            multiplier = get_price_change(stock_name, folder=stock_folder)
+            multiplier = get_price_change(stock_name)
 
             # Update value
             new_value = int(action_widget.quantity * multiplier)
