@@ -379,11 +379,16 @@ class GamePage(QWidget):
         self.action_manager.update_selected_action_charts()
         self.action_manager.update_value_labels_by_stock()
 
-        #aktualizacja Balansu
+        #Update Balance
         total_value = sum(int(widget.value_label.text()) for widget in self.action_manager.action_widgets)
         new_balance = self.unspent_money + total_value
         self.player_manager.set_player_balance(new_balance)
         self.balance.setText(f"$ {new_balance}")
+
+        # #Updating NPC Dialogue
+        budget = self.player_manager.get_player_balance()
+        for i, npc_widget in enumerate(self.npc_manager.npc_widgets):
+            self.npc_manager.update_dialog_ai(i, player_balance=budget, selected_companies=selected_companies)
 
         loading.close()
 
