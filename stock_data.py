@@ -21,9 +21,9 @@ def get_turn_dates(turn_counter):
     Calculate start and end dates for a given turn.
     """
     start = datetime(2015, 1, 1)
-    end = datetime(2015, 1, 31)  # Skrócony okres do 1 miesiąca
-    start += relativedelta(months=2 * turn_counter)  # 2 miesiące zamiast 5
-    end += relativedelta(months=2 * turn_counter)
+    end = datetime(2015, 2, 28)  # Skrócony okres do 2 miesięcy
+    start += relativedelta(months=3 * turn_counter)  # 3 miesiące zamiast 5
+    end += relativedelta(months=3 * turn_counter)
     return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
 
 def get_data(selected_companies, turn_counter):
