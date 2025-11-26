@@ -5,6 +5,7 @@ from PySide6.QtCore import Signal, Qt
 from npc_manager import NPCManager
 from player_manager import PlayerManager
 from action_manager import ActionManager
+from game_over_dialog import GameOverDialog
 from stock_data import get_data, get_data_chart, clear_stock_files
 
 
@@ -431,7 +432,7 @@ class GamePage(QWidget):
             # Pokaż komunikat o rozpoczęciu gry
             player_data = self.player_manager.get_player_data()
             start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-            start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
+            start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun! The first turn is finished.</span><br><br>"
             start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
 
 
@@ -443,70 +444,31 @@ class GamePage(QWidget):
         self.turn_counter += 1
         self.update_turn_display()
 
-        # Sprawdź czy to już 10. tura
         if self.turn_counter >= self.max_turns:
             self.game_over()
         else:
             # Kontynuuj grę normalnie
             player_data = self.player_manager.get_player_data()
             continue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-            continue_text += f"Turn {self.turn_counter} of {self.max_turns}<br><br>"
+            continue_text += f"Turn {self.turn_counter+1} of {self.max_turns+1}<br><br>"
             continue_text += "continues..."
 
             self.dialogText.setText(continue_text)
             self.DialogBox.verticalScrollBar().setValue(0)
-
 
     def game_over(self):
         """Wyświetla okno Game Over i resetuje grę"""
         player_data = self.player_manager.get_player_data()
         final_balance = self.player_manager.get_player_balance()
 
-        # Stwórz customowe okno dialogowe
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("Game Over")
-        game_over_text = f"<b style='color: rgb(255, 50, 50); font-size: 32px;'>GAME OVER</b><br><br>"
-        game_over_text += f"<span style='color: rgb(255, 215, 0); font-size: 24px;'>Congratulations, {player_data['name']}!</span><br><br>"
-        game_over_text += f"<span style='color: rgb(150, 150, 255); font-size: 18px;'>You've completed all {self.max_turns} turns.</span><br>"
-        game_over_text += f"<span style='color: rgb(100, 255, 100); font-size: 20px;'>Final Balance: ${final_balance}</span><br><br>"
-        game_over_text += f"<span style='color: white; font-size: 16px;'>What would you like to do?</span>"
-        msg_box.setText(game_over_text)
+        dialog = GameOverDialog(self, player_data['name'], final_balance)
+        result = dialog.exec()
 
-        # Dodaj przyciski
-        btn_menu = msg_box.addButton("Return to Menu", QMessageBox.AcceptRole)
-        btn_restart = msg_box.addButton("Play Again", QMessageBox.ActionRole)
-
-        msg_box.setStyleSheet("""
-            QMessageBox {
-                background-color: rgb(38, 39, 59);
-            }
-            QMessageBox QLabel {
-                color: white;
-            }
-            QPushButton {
-                background-color: rgb(255, 215, 0);
-                color: black;
-                font-weight: bold;
-                padding: 10px 20px;
-                border-radius: 10px;
-                min-width: 120px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 215, 0, 0.7);
-            }
-            QPushButton:pressed {
-                background-color: orange;
-            }
-        """)
-
-        msg_box.exec()
-
-        # Sprawdź który przycisk został kliknięty
-        if msg_box.clickedButton() == btn_menu:
+        if result == QDialog.DialogCode.Accepted:
             self.main_window.show_menu()
         else:
             self.reset_game()
+
 
     def reset_game(self):
         """Reset the game to the initial state."""
