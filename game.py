@@ -270,11 +270,11 @@ class GamePage(QWidget):
             return
 
         if difficulty == 1:
-            self.player_manager.set_player_balance(10000)
+            self.player_manager.set_player_balance(2400)
         elif difficulty == 2:
-            self.player_manager.set_player_balance(5000)
+            self.player_manager.set_player_balance(1200)
         else:
-            self.player_manager.set_player_balance(1000)
+            self.player_manager.set_player_balance(600)
 
         # Update balance display
         self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
@@ -465,37 +465,38 @@ class GamePage(QWidget):
         # Stwórz customowe okno dialogowe
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Game Over")
-        msg_box.setText("GAME OVER")
-        msg_box.setInformativeText(
-            f"Congratulations, {player_data['name']}!\n\n"
-            f"You've completed all {self.max_turns} turns.\n"
-            f"Final Balance: ${final_balance}\n\n"
-            f"What would you like to do?"
-        )
+        game_over_text = f"<b style='color: rgb(255, 50, 50); font-size: 32px;'>GAME OVER</b><br><br>"
+        game_over_text += f"<span style='color: rgb(255, 215, 0); font-size: 24px;'>Congratulations, {player_data['name']}!</span><br><br>"
+        game_over_text += f"<span style='color: rgb(150, 150, 255); font-size: 18px;'>You've completed all {self.max_turns} turns.</span><br>"
+        game_over_text += f"<span style='color: rgb(100, 255, 100); font-size: 20px;'>Final Balance: ${final_balance}</span><br><br>"
+        game_over_text += f"<span style='color: white; font-size: 16px;'>What would you like to do?</span>"
+        msg_box.setText(game_over_text)
 
         # Dodaj przyciski
         btn_menu = msg_box.addButton("Return to Menu", QMessageBox.AcceptRole)
         btn_restart = msg_box.addButton("Play Again", QMessageBox.ActionRole)
 
-        # Ustaw styl dla okna dialogowego
         msg_box.setStyleSheet("""
             QMessageBox {
                 background-color: rgb(38, 39, 59);
             }
             QMessageBox QLabel {
                 color: white;
-                font-size: 16px;
             }
             QPushButton {
                 background-color: rgb(255, 215, 0);
                 color: black;
                 font-weight: bold;
-                padding: 8px 16px;
-                border-radius: 5px;
-                min-width: 100px;
+                padding: 10px 20px;
+                border-radius: 10px;
+                min-width: 120px;
+                font-size: 14px;
             }
             QPushButton:hover {
-                background-color: rgb(255, 235, 50);
+                background-color: rgba(255, 215, 0, 0.7);
+            }
+            QPushButton:pressed {
+                background-color: orange;
             }
         """)
 
@@ -517,11 +518,11 @@ class GamePage(QWidget):
         # --- Reset player balance based on current difficulty ---
         difficulty = self.main_window.settings_page.get_difficulty_id()
         if difficulty == 1:
-            self.player_manager.set_player_balance(10000)
+            self.player_manager.set_player_balance(2400)
         elif difficulty == 2:
-            self.player_manager.set_player_balance(5000)
+            self.player_manager.set_player_balance(1200)
         else:
-            self.player_manager.set_player_balance(1000)
+            self.player_manager.set_player_balance(600)
 
         # Update balance display
         self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
