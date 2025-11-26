@@ -70,7 +70,7 @@ def get_data_chart(company, all_prices=None):
     plt.figure(figsize=(10, 6))
     plt.plot(dates, prices, color=color, linewidth=2)
     plt.title(f"{company} Stock Price")
-    plt.ylabel("Cena (USD)")
+    plt.ylabel("Price (USD)")
     plt.ylim(y_min, y_max)
     plt.xticks([])
     plt.grid(True, alpha=0.3)
