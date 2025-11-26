@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButt
     QApplication
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
-from game_settings import SettingsPage
 from npc_manager import NPCManager
 from player_manager import PlayerManager
 from action_manager import ActionManager
@@ -37,7 +36,8 @@ class GamePage(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        
+        self.unspent_money = None
+
         # --- zarządzanie danymi gracza ---
         self.player_manager = PlayerManager()
         # --- zarządzanie opcjami akcyjnymi ---
@@ -45,7 +45,7 @@ class GamePage(QWidget):
 
         # --- Licznik tur ---
         self.turn_counter = 0
-        self.max_turns = 10
+        self.max_turns = 3
 
         # --- współrzędne dla Opcji akcyjnych ---
         action_x_start = self.action_manager.action_x_start
@@ -63,17 +63,7 @@ class GamePage(QWidget):
         self.menu_box.setStyleSheet("QGroupBox { border: none; }")
         self.menu_box.setGeometry(0,0, 1100, 800)
 
-         # --- Tworzenie opcji akcyjnych za pomocą ActionManager ---
-        self.action_widgets = self.action_manager.create_action_widgets(self.menu_box)
-        
-        # Podłącz sygnały kliknięcia dla każdej akcji
-        for action_widget in self.action_widgets:
-            action_widget.clicked.connect(
-                lambda checked=False, widget=action_widget: (
-                    None if self.game_started else self.action_manager.show_action_menu(widget, self)
-                )
-            )
-            
+
         def apply_button_style(button, image_path):
             button.setStyleSheet(f"""
                 QPushButton {{
@@ -89,52 +79,70 @@ class GamePage(QWidget):
                     background-color: orange;
                 }}
             """)
-            
+
          # --- Przyciski Random i Start ---
         button_y = action_y_start + 2 * self.action_manager.action_height + 2 * self.action_manager.action_padding
         button_width = 136
         button_height = 33
-        
+
         self.btn_random = QPushButton(self.menu_box)
         self.btn_random.setGeometry(400, button_y, button_width, button_height)
         self.btn_random.clicked.connect(self.randomize_actions)
         apply_button_style(self.btn_random, "images/buttons/random-button.png")
-        
+
         self.btn_start = QPushButton(self.menu_box)
         self.btn_start.setGeometry(400 + button_width + 20, button_y, button_width, button_height)
         self.btn_start.clicked.connect(self.start_game)
         apply_button_style(self.btn_start, "images/buttons/start-button-small.png")
-        
+
         # --- Przycisk Continue (ukryty na początku) ---
         self.btn_continue = QPushButton(self.menu_box)
         self.btn_continue.setGeometry(500, button_y, button_width, button_height)
         self.btn_continue.clicked.connect(self.continue_game)
         apply_button_style(self.btn_continue, "images/buttons/continue-button-small.png")
         self.btn_continue.hide()  # Ukryj na początku
-        
+
         # Flaga czy gra się rozpoczęła
         self.game_started = False
-        
+
         # --- Players Box ---
         self.playerBox = QLabel(self)
         self.playerBox.setGeometry(1100, action_y_start+60, 250, 370)
         self.playerBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
-        
+
         # --- Balance Box ---
         self.balanceBox = QLabel(self)
         self.balanceBox.setGeometry(1100, action_y_start, 250, 40)
         self.balanceBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
-        
+
         self.balance = QLabel(self.balanceBox)
         self.balance.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         self.balance.setFont(QFont("Comic Sans MS", 30))
         self.balance.setStyleSheet("color: green; padding: 0px; background-color: rgba(128, 0, 128, 0);")
 
+        # Initialize label with current balance
+        self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
+
+         # --- Tworzenie opcji akcyjnych za pomocą ActionManager ---
+        self.action_widgets = self.action_manager.create_action_widgets(
+            parent=self.menu_box,
+            player_manager=self.player_manager,
+            balance_label=self.balance
+        )
+
+        # Podłącz sygnały kliknięcia dla każdej akcji
+        for action_widget in self.action_widgets:
+            action_widget.image_label.clicked.connect(
+                lambda checked=False, widget=action_widget: (
+                    None if self.game_started else self.action_manager.show_action_menu(widget.image_label, self)
+                )
+            )
+
         # --- Avatar Box ---
         self.avatarBox = QLabel(self)
         self.avatarBox.setGeometry(1100, 495, 250, 250)
         self.avatarBox.setStyleSheet("QLabel { background-color: rgba(38, 39, 59, 0.8); }")
-        
+
          # --- Przycisk powrotu do gracza (Me) ---
         self.btn_player = QPushButton("ME", self)
         self.btn_player.setGeometry(1110, action_y_start+450, 40, 20)
@@ -155,11 +163,11 @@ class GamePage(QWidget):
             }
         """)
         self.btn_player.clicked.connect(self.show_player_character)
-        self.btn_player.raise_() 
-        
+        self.btn_player.raise_()
+
         self.avatar_image = QLabel(self.avatarBox)
         self.avatar_image.setAlignment(Qt.AlignCenter)
-        self.avatar_image.setGeometry(0, 0, 250, 250)   
+        self.avatar_image.setGeometry(0, 0, 250, 250)
         pixmap = QPixmap("images/game_window/avatar/businessman.png")
         scaled_pixmap = pixmap.scaled(self.avatar_image.width(), self.avatar_image.height())
         self.avatar_image.setPixmap(scaled_pixmap)
@@ -196,9 +204,9 @@ class GamePage(QWidget):
             "On the right side, you will find My Friends. Listen to their advice, but remember – the decision is yours.<br><br>"
             "<b style='color: rgb(255, 215, 0);'>Goal:</b><br>"
             "You have 10 rounds. Try not to go bankrupt.<br><br>"
-            "<b style='color: rgb(100, 255, 100); font-size: 36px;'>Good luck!!</b><br><br>"         
+            "<b style='color: rgb(100, 255, 100); font-size: 36px;'>Good luck!!</b><br><br>"
         )
-        
+
         # Add text to box
         self.DialogBox.setWidget(self.dialogText)
 
@@ -230,15 +238,15 @@ class GamePage(QWidget):
         self.downIndicator.hide()
         self.DialogBox.verticalScrollBar().valueChanged.connect(self.updateIndicators)
         self.updateIndicators()
-        
+
         # --- NPC Manager - tutaj tworzymy i zarządzamy NPC ---
         self.npc_manager = NPCManager()
         self.npc_widgets = self.npc_manager.create_npc_widgets(self.playerBox)
-        
+
         # Podłączamy aktualizację interfejsu po kliknięciu NPC
         for npc_widget in self.npc_widgets:
             npc_widget.clicked.connect(self.update_npc_display)
-            
+
         # --- przycisk wyjście do menu ---
         btn_exit = QPushButton(self)
         btn_exit.setGeometry(1300, 15, 50, 32)
@@ -258,17 +266,24 @@ class GamePage(QWidget):
             """)
 
     def init_balance(self, difficulty):
+        if self.game_started:
+            return
+
         if difficulty == 1:
             self.player_manager.set_player_balance(10000)
         elif difficulty == 2:
             self.player_manager.set_player_balance(5000)
         else:
             self.player_manager.set_player_balance(1000)
-            
-        self.balance.setText(
-            f"$ {self.player_manager.get_player_balance()}"
-        )
-    
+
+        # Update balance display
+        self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
+
+        # Reset all action value labels
+        for widget in self.action_manager.action_widgets:
+            widget.quantity = 0
+            widget.value_label.setText("0")
+
     # --- Update indicator visibility based on scroll position ---
     def updateIndicators(self):
         bar = self.DialogBox.verticalScrollBar()
@@ -290,54 +305,54 @@ class GamePage(QWidget):
     def resizeEvent(self, event):
         self.background.resize(self.size())
         self.updateIndicators()
-        
+
     # --- pokazanie postaci gracza ---
     def show_player_character(self):
-        
+
         self.player_data = self.player_manager.get_player_data()
         # --- Zmienić duzy awatar ---
         pixmap = QPixmap(self.player_data["avatar"])
         if not pixmap.isNull():
             scaled_pixmap = pixmap.scaled(
                 self.avatar_image.width(), self.avatar_image.height(),
-                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
             self.avatar_image.setPixmap(scaled_pixmap)
-        
-        #  --- Zmienić dialog --- 
+
+        #  --- Zmienić dialog ---
         dialogue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{self.player_data['name']}</b><br><br>{self.player_data['dialogue']}"
         self.dialogText.setText(dialogue_text)
-        
+
         self.DialogBox.verticalScrollBar().setValue(0)
         self.npc_manager.unselect_npc()
-        
+
     def update_npc_display(self, index):
-        
+
         npc_data = self.npc_manager.get_npc_data(index)
         if npc_data is None:
             return
-        
+
         # --- Zmienić duzy awatar ---
         pixmap = QPixmap(npc_data["avatar"])
         if not pixmap.isNull():
             scaled_pixmap = pixmap.scaled(
                 self.avatar_image.width(), self.avatar_image.height(),
-                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
             self.avatar_image.setPixmap(scaled_pixmap)
-        
-        #  --- Zmienić dialog --- 
+
+        #  --- Zmienić dialog ---
         dialogue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{npc_data['name']}</b><br><br>{npc_data['dialogue']}"
         self.dialogText.setText(dialogue_text)
-        
+
         # Scroll dialog na początek
         self.DialogBox.verticalScrollBar().setValue(0)
 
     def show_action_menu(self, target_label):
         self.action_manager.show_action_menu(target_label, self)
-        
+
     def randomize_actions(self):
         """Losuje opcje dla wszystkich akcji"""
         self.action_manager.randomize_actions()
@@ -362,67 +377,72 @@ class GamePage(QWidget):
 
         # Update the action widgets with new chart images
         self.action_manager.update_selected_action_charts()
+        self.action_manager.update_value_labels_by_stock()
 
-        #Update the NPC Dialouge
-        wario_index = next(
-            (i for i, npc in enumerate(self.npc_manager.npc_data_list) if npc["name"].upper() == "WARIO"),
-            None
-        )
-        if wario_index is not None:
-            self.npc_manager.update_dialog_ai(
-                wario_index,
-                player_balance=10000,
-                selected_companies=self.action_manager.get_selected_actions()
-            )
+        #Update Balance
+        total_value = sum(int(widget.value_label.text()) for widget in self.action_manager.action_widgets)
+        new_balance = self.unspent_money + total_value
+        self.player_manager.set_player_balance(new_balance)
+        self.balance.setText(f"$ {new_balance}")
+
+        # #Updating NPC Dialogue
+        budget = self.player_manager.get_player_balance()
+        for i, npc_widget in enumerate(self.npc_manager.npc_widgets):
+            self.npc_manager.update_dialog_ai(i, player_balance=budget, selected_companies=selected_companies)
 
         loading.close()
-    
+
     def start_game(self):
         if not self.action_manager.all_actions_selected():
             # Nie wszystkie akcje wybrane - pokaż komunikat
             missing = self.action_manager.get_missing_count()
             player_data = self.player_manager.get_player_data()
-            
+
             warning_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
             warning_text += f"<span style='color: rgb(255, 100, 100); font-size: 22px;'>You need to select all 6 actions before starting, ma-a-n!</span><br><br>"
             warning_text += f"Missing: {missing} action{'s' if missing > 1 else ''}"
-            
+
             self.dialogText.setText(warning_text)
             self.DialogBox.verticalScrollBar().setValue(0)
-            
+
             # Pokaż awatar gracza
-            if not self.avatar_image.isNull():
+            pixmap = self.avatar_image.pixmap()
+            if pixmap is not None and not pixmap.isNull():
                 scaled_pixmap = self.avatar_image.scaled(
                     self.avatar_image.width(), self.avatar_image.height(),
-                    Qt.AspectRatioMode.KeepAspectRatio, 
+                    Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
                 self.avatar_image.setPixmap(scaled_pixmap)
         else:
             self.game_started = True
+            self.unspent_money = self.player_manager.get_player_balance()
+            self.main_window.settings_page.disable_difficulty_buttons()
             self.turn_counter = 0
+            for widget in self.action_manager.action_widgets:
+                widget.hide_controls()
             self.update_turn_display()
 
             # Ukryj Random i Start, pokaż Continue
             self.btn_random.hide()
             self.btn_start.hide()
             self.btn_continue.show()
-            
+
             # Pokaż komunikat o rozpoczęciu gry
             player_data = self.player_manager.get_player_data()
             start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
             start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
             start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
 
-            
+
             self.dialogText.setText(start_text)
             self.DialogBox.verticalScrollBar().setValue(0)
-    
+
     def continue_game(self):
         # Zwiększ licznik tur
         self.turn_counter += 1
         self.update_turn_display()
-        
+
         # Sprawdź czy to już 10. tura
         if self.turn_counter >= self.max_turns:
             self.game_over()
@@ -432,16 +452,16 @@ class GamePage(QWidget):
             continue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
             continue_text += f"Turn {self.turn_counter} of {self.max_turns}<br><br>"
             continue_text += "continues..."
-            
+
             self.dialogText.setText(continue_text)
             self.DialogBox.verticalScrollBar().setValue(0)
 
-    
+
     def game_over(self):
         """Wyświetla okno Game Over i resetuje grę"""
         player_data = self.player_manager.get_player_data()
         final_balance = self.player_manager.get_player_balance()
-        
+
         # Stwórz customowe okno dialogowe
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Game Over")
@@ -452,11 +472,11 @@ class GamePage(QWidget):
             f"Final Balance: ${final_balance}\n\n"
             f"What would you like to do?"
         )
-        
+
         # Dodaj przyciski
         btn_menu = msg_box.addButton("Return to Menu", QMessageBox.AcceptRole)
         btn_restart = msg_box.addButton("Play Again", QMessageBox.ActionRole)
-        
+
         # Ustaw styl dla okna dialogowego
         msg_box.setStyleSheet("""
             QMessageBox {
@@ -478,36 +498,53 @@ class GamePage(QWidget):
                 background-color: rgb(255, 235, 50);
             }
         """)
-        
+
         msg_box.exec()
-        
+
         # Sprawdź który przycisk został kliknięty
         if msg_box.clickedButton() == btn_menu:
             self.main_window.show_menu()
         else:
             self.reset_game()
-    
+
     def reset_game(self):
-        """Resetuje grę do stanu początkowego"""
+        """Reset the game to the initial state."""
         self.game_started = False
         self.turn_counter = 0
-        #self.update_turn_display()
         clear_stock_files()
-        
-        # Wyczyść wybrane akcje i przywróć placeholder
+        self.unspent_money = None
+
+        # --- Reset player balance based on current difficulty ---
+        difficulty = self.main_window.settings_page.get_difficulty_id()
+        if difficulty == 1:
+            self.player_manager.set_player_balance(10000)
+        elif difficulty == 2:
+            self.player_manager.set_player_balance(5000)
+        else:
+            self.player_manager.set_player_balance(1000)
+
+        # Update balance display
+        self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
+
+        # Reset action selections
         self.action_manager.reset_selections()
-        
-        # Pokaż przyciski Random i Start, ukryj Continue
+        for widget in self.action_manager.action_widgets:
+            widget.show_controls()
+
+        # Show Random and Start buttons, hide Continue
         self.btn_random.show()
         self.btn_start.show()
         self.btn_continue.hide()
-        
-        # Pokaż postać gracza
+
+        # Enable difficulty selection
+        self.main_window.settings_page.enable_difficulty_buttons()
+
+        # Show player character and reset dialog
         self.show_player_character()
-        
+
         player_data = self.player_manager.get_player_data()
         reset_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
         reset_text += "Ready for a new game! Select your actions and press Start."
-        
+
         self.dialogText.setText(reset_text)
         self.DialogBox.verticalScrollBar().setValue(0)

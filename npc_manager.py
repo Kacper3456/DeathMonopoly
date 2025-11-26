@@ -33,7 +33,17 @@ class NPCWidget(QWidget):
         self.nickname_label.setFont(QFont("Helvetica", 22, QFont.Weight.Bold))
         self.nickname_label.setStyleSheet("color: white; background-color: transparent;")
         self.nickname_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-    
+
+        # --- Dialogue ---
+        self.dialogue_label = QLabel(npc_data.get("dialogue", ""), self)
+        self.dialogue_label.setGeometry(85, 40, 140, 25)  # Adjust position/size as needed
+        self.dialogue_label.setFont(QFont("Helvetica", 10))
+        self.dialogue_label.setStyleSheet("color: white; background-color: transparent;")
+        self.dialogue_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        self.dialogue_label.setWordWrap(True)
+        self.dialogue_label.setTextFormat(Qt.TextFormat.RichText)
+        self.dialogue_label.hide()
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit(self.index)
@@ -96,21 +106,27 @@ class NPCManager:
 
     def update_dialog_ai(self, index, player_balance=None, selected_companies=None):
         """
-        Updates the 'dialogue' field of the NPC at `index` using AI.
-        This does not touch GUI; GamePage.update_npc_display will show the new text automatically.
+        Updates the 'dialogue' of the NPC at `index` using AI.
         """
         if not (0 <= index < len(self.npc_data_list)):
             return
 
-        # Prepare input for AI
-        question = "Based on budget and the data from selected companies choose what to invest in. remember to be biased for japanese and italian related companies"
+        # Build the AI question
+        question = "Based on budget and the data from selected companies, choose what to invest in. Remember to be biased for Japanese and Italian companies."
         if player_balance is not None:
-            question += f"Budget: {player_balance}\n"
-        if selected_companies is not None:
-            question += f"Selected companies: {', '.join(selected_companies)}"
+            question += f"\nBudget: {player_balance}"
+        if selected_companies:
+            question += f"\nSelected companies: {', '.join(selected_companies)}"
 
-        # Generate AI response
-        ai_response = ask_bot(question)
+        # Call AI
+        npc_name = self.npc_data_list[index]["name"]
+        ai_response = ask_bot(question, personality_name=npc_name)
 
-        # Update the NPC dialogue
-        self.npc_data_list[index]['dialogue'] = ai_response
+        # --- NEW: Split lines and convert to HTML for QLabel ---
+        lines = ai_response.strip().split('\n')  # Split on newline characters
+        formatted_response = '<br>'.join(lines)  # Join with <br> for QLabel HTML
+        self.npc_data_list[index]['dialogue'] = formatted_response
+
+        # --- UPDATE THE WIDGET'S LABEL ---
+        self.npc_widgets[index].dialogue_label.setText(formatted_response)
+        self.npc_widgets[index].dialogue_label.setTextFormat(Qt.TextFormat.RichText)
