@@ -1,14 +1,7 @@
 "Prosty symulator inwestowania - work still in progress"
 
 # Biblioteki 
-Następujące biblioteki są wymagane do uruchomienia projektu
-* `dotenv>=0.9.9`
-* `pyside6>=6.10.0`
-* `openai>=2.8.1`
-* `yfinance>=0.2.66`
-* `matplotlib>=3.10.7`
-
-Lista wszystkich bibliotek znajduje się w pliku `pyproject.toml`
+Lista wszystkich wymaganych bibliotek znajduje się w pliku `pyproject.toml` lub `requirements.txt`
 biblioteki wymagane można zainstalować automatycznie porzez wykonanie komendy `pip install -r requirements.txt`
 
 
@@ -18,6 +11,12 @@ To set up the env do the following:
 2. Open project folder
 3. Run `uv sync` command
 4. Activate virtual env created by `uv` and use `python main.py` command or use `uv run main.py` directly
+
+To add a new library just use `uv add` comannd. For example:
+
+```bash
+uv add matplotlib
+```
 
 
 # Zmienne środowiskowe

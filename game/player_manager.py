@@ -4,7 +4,7 @@ class PlayerManager:
             "name": "Waldemar",
             "avatar": "images/game_window/avatar/businessman.png",
             "dialogue": "You know what, sometimes I feel like this whole stock market is one big circus. But since we're already here, please tell me: what are you loading the biggest money into right now? The point is for these dollars to multiply, not melt away.",
-            "balance": 10000
+            "balance": 2400
         }
     
     def get_player_data(self):

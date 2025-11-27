@@ -2,10 +2,11 @@ from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButt
     QApplication
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
-from .npc_manager import NPCManager
-from .player_manager import PlayerManager
-from .action_manager import ActionManager
-from .stock_data import get_data, get_data_chart, clear_stock_files
+from npc_manager import NPCManager
+from player_manager import PlayerManager
+from action_manager import ActionManager
+from game_over_dialog import GameOverDialog
+from stock_data import get_data, get_data_chart, clear_stock_files
 
 
 class LoadingDialog(QDialog):
@@ -270,11 +271,11 @@ class GamePage(QWidget):
             return
 
         if difficulty == 1:
-            self.player_manager.set_player_balance(10000)
+            self.player_manager.set_player_balance(2400)
         elif difficulty == 2:
-            self.player_manager.set_player_balance(5000)
+            self.player_manager.set_player_balance(1200)
         else:
-            self.player_manager.set_player_balance(1000)
+            self.player_manager.set_player_balance(600)
 
         # Update balance display
         self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
@@ -431,7 +432,7 @@ class GamePage(QWidget):
             # Pokaż komunikat o rozpoczęciu gry
             player_data = self.player_manager.get_player_data()
             start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-            start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
+            start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun! The first turn is finished.</span><br><br>"
             start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
 
 
@@ -443,69 +444,31 @@ class GamePage(QWidget):
         self.turn_counter += 1
         self.update_turn_display()
 
-        # Sprawdź czy to już 10. tura
         if self.turn_counter >= self.max_turns:
             self.game_over()
         else:
             # Kontynuuj grę normalnie
             player_data = self.player_manager.get_player_data()
             continue_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-            continue_text += f"Turn {self.turn_counter} of {self.max_turns}<br><br>"
+            continue_text += f"Turn {self.turn_counter+1} of {self.max_turns+1}<br><br>"
             continue_text += "continues..."
 
             self.dialogText.setText(continue_text)
             self.DialogBox.verticalScrollBar().setValue(0)
-
 
     def game_over(self):
         """Wyświetla okno Game Over i resetuje grę"""
         player_data = self.player_manager.get_player_data()
         final_balance = self.player_manager.get_player_balance()
 
-        # Stwórz customowe okno dialogowe
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("Game Over")
-        msg_box.setText("GAME OVER")
-        msg_box.setInformativeText(
-            f"Congratulations, {player_data['name']}!\n\n"
-            f"You've completed all {self.max_turns} turns.\n"
-            f"Final Balance: ${final_balance}\n\n"
-            f"What would you like to do?"
-        )
+        dialog = GameOverDialog(self, player_data['name'], final_balance)
+        result = dialog.exec()
 
-        # Dodaj przyciski
-        btn_menu = msg_box.addButton("Return to Menu", QMessageBox.AcceptRole)
-        btn_restart = msg_box.addButton("Play Again", QMessageBox.ActionRole)
-
-        # Ustaw styl dla okna dialogowego
-        msg_box.setStyleSheet("""
-            QMessageBox {
-                background-color: rgb(38, 39, 59);
-            }
-            QMessageBox QLabel {
-                color: white;
-                font-size: 16px;
-            }
-            QPushButton {
-                background-color: rgb(255, 215, 0);
-                color: black;
-                font-weight: bold;
-                padding: 8px 16px;
-                border-radius: 5px;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background-color: rgb(255, 235, 50);
-            }
-        """)
-
-        msg_box.exec()
-
-        # Sprawdź który przycisk został kliknięty
-        if msg_box.clickedButton() == btn_menu:
+        if result == QDialog.DialogCode.Accepted:
             self.main_window.show_menu()
         else:
             self.reset_game()
+
 
     def reset_game(self):
         """Reset the game to the initial state."""
@@ -517,11 +480,11 @@ class GamePage(QWidget):
         # --- Reset player balance based on current difficulty ---
         difficulty = self.main_window.settings_page.get_difficulty_id()
         if difficulty == 1:
-            self.player_manager.set_player_balance(10000)
+            self.player_manager.set_player_balance(2400)
         elif difficulty == 2:
-            self.player_manager.set_player_balance(5000)
+            self.player_manager.set_player_balance(1200)
         else:
-            self.player_manager.set_player_balance(1000)
+            self.player_manager.set_player_balance(600)
 
         # Update balance display
         self.balance.setText(f"$ {self.player_manager.get_player_balance()}")
