@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QLabel
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
-from .AI import ask_bot
+from game.AI import ask_bot
 
 
 class NPCWidget(QWidget):

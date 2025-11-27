@@ -1,10 +1,10 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 from PySide6.QtGui import QGuiApplication
-from .menu import MenuPage
-from .game import GamePage
-from .game_settings import SettingsPage, BrightnessOverlay
+from game.menu import MenuPage
+from game.game import GamePage
+from game.game_settings import SettingsPage, BrightnessOverlay
 import sys
-from stock_data import clear_stock_files
+from game.stock_data import clear_stock_files
 
 
 class MainWindow(QMainWindow):
