@@ -155,8 +155,9 @@ class TestPlayerManagerBalance:
         # Sprawdza czy fundusze nie są modyfikowane przez inne funkcje
         player_manager.set_player_balance(1000)
         player_manager.set_player_name("Test")
-        player_manager.set_player_avatar(self, ".images/game_window/avatar/businessman.png")
-        player_manager.get_player_balance(self)
+        player_manager.set_player_avatar(self)
+        path = "images/test/avatar.png"
+        player_manager.set_player_avatar(path)
         assert player_manager.get_player_balance() == 1000
 
     def test_multiple_balance_changes(self, player_manager):
@@ -297,7 +298,7 @@ class TestPlayerManagerUpdate:
 
     def test_update_mixed_none_and_values(self, player_manager):
         # Test aktualizacji tylko części danych używając None
-        original_data = player_manager.player_data["avatar"].copy()
+        original_data = player_manager.player_data["avatar"]
         player_manager.update_player_data(name="NewName", avatar=None, dialogue="New")
         assert player_manager.get_player_data()["name"] == "NewName"
         assert player_manager.get_player_data()["dialogue"] == "New"
@@ -312,157 +313,124 @@ class TestPlayerManagerUpdate:
 class TestActionManagerInitialization:
 
     def test_options_count(self, action_manager):
-        # Verifies that ActionManager initializes with 11 stock options
+        # Sprawdzanie czy wszystkie 11 opcji akcyjnych zostało wczytanych
         assert len(action_manager.options) == 11
 
     def test_options_are_dict(self, action_manager):
-        """Test options is a dictionary"""
-        # Checks that options are stored in a dictionary structure
+        # Sprawdza czy opcje są zapisywane w dictionary
         assert isinstance(action_manager.options, dict)
 
-    def test_specific_stocks_present(self, action_manager):
-        """Test specific stocks are in options"""
-        # Validates that specific stock tickers (AAPL, GOOG, etc.) exist
-        assert "AAPL" in action_manager.options
-        assert "GOOG" in action_manager.options
-        assert "MSFT" in action_manager.options
-        assert "NVDA" in action_manager.options
-        assert "AMZN" in action_manager.options
-
     def test_all_stocks_present(self, action_manager):
-        """Test all expected stocks are present"""
-        # Ensures all 11 expected stock tickers are present
+        # Sprawdzanie czy wszystkie akcje są wczytane
         expected = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA", "META", "CSCO", "PEP", "NFLX", "EA"]
         for stock in expected:
             assert stock in action_manager.options
 
     def test_initial_selected_actions(self, action_manager):
-        """Test initial selected actions are None"""
-        # Verifies that no actions are selected on initialization
+        # Sprawdza czy żadna akcja nie została wybrana na początku gry
         assert action_manager.selected_actions == [None] * 6
 
     def test_selected_actions_length(self, action_manager):
-        """Test selected actions has correct length"""
-        # Checks that selected_actions array has exactly 6 slots
+        # Sprawdza czy można wybrać maksymalnie tylko 6 akcji
         assert len(action_manager.selected_actions) == 6
 
     def test_action_widgets_empty_initially(self, action_manager):
-        """Test action_widgets list is empty initially"""
-        # Ensures action_widgets list starts empty before creation
+        # Sprawdza czy lista action_widgets jest pusta przed wyborem akcji
         assert action_manager.action_widgets == []
 
     def test_position_coordinates(self, action_manager):
-        """Test action position coordinates are set"""
-        # Validates that action widget position coordinates are set correctly
+        # Sprawdza czy pozycje akcji są poprawne
         assert action_manager.action_x_start == 30
         assert action_manager.action_y_start == 55
 
     def test_dimension_settings(self, action_manager):
-        """Test action dimensions are set"""
-        # Checks that action widget dimensions (width, height, padding) are defined
+        # Sprawdza czy wymiary akcji są poprawne
         assert action_manager.action_width == 340
         assert action_manager.action_height == 180
         assert action_manager.action_padding == 10
 
-
+# --- Testy obsługi akcji ---
 class TestActionManagerOptions:
-    """Test option management"""
 
     def test_get_options(self, action_manager):
-        """Test getting all options"""
-        # Tests retrieving the complete dictionary of stock options
+        # Testuje pobór wszystkich akcji
         options = action_manager.get_options()
         assert len(options) == 11
         assert isinstance(options, dict)
 
     def test_add_new_option(self, action_manager):
-        """Test adding new stock option"""
-        # Verifies that new stock options can be added dynamically
+        # Sprawdza czy możemy dodawać nowe akcje
         action_manager.add_option("TEST", "test/path.png")
         assert "TEST" in action_manager.options
         assert action_manager.options["TEST"] == "test/path.png"
 
     def test_add_multiple_options(self, action_manager):
-        """Test adding multiple new options"""
-        # Tests adding several new options sequentially
+        # Testowanie dodawanie wielu akcji
         action_manager.add_option("TEST1", "path1.png")
         action_manager.add_option("TEST2", "path2.png")
         assert "TEST1" in action_manager.options
         assert "TEST2" in action_manager.options
 
     def test_add_option_overwrites_existing(self, action_manager):
-        """Test adding option with existing key overwrites"""
-        # Checks that adding an option with existing key updates the path
+        # Test aktualizacji akcji poprzez add_option
         action_manager.add_option("AAPL", "new/path.png")
         assert action_manager.options["AAPL"] == "new/path.png"
 
     def test_remove_existing_option(self, action_manager):
-        """Test removing existing option"""
-        # Tests removing a stock option from the dictionary
+        # Usuwanie akcji
         action_manager.remove_option("AAPL")
         assert "AAPL" not in action_manager.options
 
     def test_remove_nonexistent_option(self, action_manager):
-        """Test removing non-existent option doesn't raise error"""
-        # Ensures removing non-existent option doesn't raise an error
+        # Sprawdzanie czy usuwanie nieistniejących akcji nie powoduje błędu
         action_manager.remove_option("NONEXISTENT")  # Should not raise
 
     def test_remove_all_options(self, action_manager):
-        """Test removing all options"""
-        # Verifies that all options can be removed, leaving empty dictionary
+        # Czy wszystkie akcje mogą być usunięte
         for stock in list(action_manager.options.keys()):
             action_manager.remove_option(stock)
         assert len(action_manager.options) == 0
 
-
+# --- Testy wyboru akcji
 class TestActionManagerSelections:
-    """Test selection management"""
 
     def test_all_actions_selected_when_none(self, action_manager):
-        """Test all_actions_selected returns False when none selected"""
-        # Checks that all_actions_selected() returns False when nothing is selected
+        # Sprawdzanie czy zwraca fałsz jeżeli nie wybrano żadnej akcji
         assert not action_manager.all_actions_selected()
 
     def test_all_actions_selected_when_partial(self, action_manager):
-        """Test all_actions_selected returns False when partially selected"""
-        # Verifies False is returned when only some actions are selected
+        # Sprawdzanie czy zwraca fałsz jeżeli mniej niż 6 akcji zostało wybranych
         action_manager.selected_actions[0] = "AAPL"
         action_manager.selected_actions[1] = "GOOG"
         assert not action_manager.all_actions_selected()
 
     def test_all_actions_selected_when_all(self, action_manager):
-        """Test all_actions_selected returns True when all selected"""
-        # Tests that True is returned when all 6 actions are selected
+        # Sprawdzanie czy zwraca prawdę gdy 6 akcji jest wybranych
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         assert action_manager.all_actions_selected()
 
     def test_get_missing_count_all_missing(self, action_manager):
-        """Test missing count when all are missing"""
-        # Verifies count of 6 when no actions are selected
+        # Sprawdza czy missing count wynosi 6 kiedy nie wybrano akcji
         assert action_manager.get_missing_count() == 6
 
     def test_get_missing_count_none_missing(self, action_manager):
-        """Test missing count when none are missing"""
-        # Tests count of 0 when all actions are selected
+        # Sprawdza czy missing count wynosi 0 kiedy wybrano 6 akcji
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         assert action_manager.get_missing_count() == 0
 
     def test_get_missing_count_partial(self, action_manager):
-        """Test missing count with partial selections"""
-        # Checks correct count when some actions are selected
+        # Sprawdza czy missing count jest poprawny zaleźnie
         action_manager.selected_actions[0] = "AAPL"
         action_manager.selected_actions[1] = "GOOG"
         assert action_manager.get_missing_count() == 4
 
     def test_get_available_options_all_available(self, action_manager):
-        """Test available options when none selected"""
-        # Tests that all 11 options are available when none selected
+        # Sprawdzanie czy wszystkie opcje są dostępne do wyboru
         available = action_manager.get_available_options()
         assert len(available) == 11
 
     def test_get_available_options_some_selected(self, action_manager):
-        """Test available options when some selected"""
-        # Verifies available options exclude already selected ones
+        # Sprawdzanie czy poprawnie weryfikowana jest dostępność akcji
         action_manager.selected_actions[0] = "AAPL"
         action_manager.selected_actions[1] = "GOOG"
         available = action_manager.get_available_options()
@@ -472,90 +440,76 @@ class TestActionManagerSelections:
 
     def test_get_available_options_all_selected(self, action_manager):
         """Test available options when all selected"""
-        # Checks remaining options when 6 are selected
+        # Sprawdza czy poprawnie wskazuje nie wybrane akcje
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         available = action_manager.get_available_options()
         assert len(available) == 5  # 11 total - 6 selected
 
     def test_get_selected_actions(self, action_manager):
-        """Test getting selected actions"""
-        # Tests retrieving the current selection array
+        # Test pobierania listy wybranych akcji
         test_selections = ["AAPL", "GOOG", None, None, None, None]
         action_manager.selected_actions = test_selections
         assert action_manager.get_selected_actions() == test_selections
 
     def test_reset_selections_clears_all(self, action_manager):
-        """Test reset clears all selections"""
-        # Verifies that reset clears all 6 selection slots
+        # Sprawdzanie czy reset akcji dizała
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         action_manager.reset_selections()
         assert action_manager.selected_actions == [None] * 6
 
     def test_reset_selections_preserves_options(self, action_manager):
-        """Test reset doesn't affect options"""
-        # Ensures reset doesn't affect the available options dictionary
+        # Sprawdznie czy reset nie usuwa dostępnych akcji
         original_options = action_manager.options.copy()
         action_manager.reset_selections()
         assert action_manager.options == original_options
 
-
+# --- Testy tworzenia widgetów ---
 class TestActionManagerWidgetCreation:
-    """Test widget creation"""
 
     def test_create_action_widgets_returns_list(self, action_manager, qapp):
-        """Test create_action_widgets returns a list"""
-        # Checks that widget creation returns a list
+        # Czy tworzenie widgetu zwraca listę
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         assert isinstance(widgets, list)
 
     def test_create_action_widgets_correct_count(self, action_manager, qapp):
-        """Test creates correct number of widgets"""
-        # Verifies exactly 6 widgets are created
+        # Czy utworzono 6 widgetów
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         assert len(widgets) == 6
 
     def test_create_action_widgets_stores_references(self, action_manager, qapp):
-        """Test widgets are stored in action_widgets"""
-        # Tests that created widgets are stored in action_widgets list
+        # Czy utworzone widgety są przechowywane na liście widgetów
         parent = QWidget()
         action_manager.create_action_widgets(parent)
         assert len(action_manager.action_widgets) == 6
 
     def test_widget_has_correct_index_property(self, action_manager, qapp):
-        """Test each widget has correct index property"""
-        # Ensures each widget has correct action_index property (0-5)
+        # Sprawdzanie czy indexy widgetów są poprawne
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         for i, widget in enumerate(widgets):
             assert widget.property("action_index") == i
 
-
+# --- Testy funkcji aktualizacji ---
 class TestActionManagerUpdateMethods:
-    """Test update methods"""
 
     def test_update_selected_action_charts(self, action_manager, qapp):
-        """Test updating action charts"""
-        # Tests updating action widgets to display stock chart images
+        # Aktualizacja wybranych akcji w widget
         parent = QWidget()
         action_manager.create_action_widgets(parent)
         action_manager.selected_actions[0] = "AAPL"
-        # Should not crash even if chart doesn't exist
         action_manager.update_selected_action_charts()
 
     def test_update_value_labels_by_stock_no_stock(self, action_manager, qapp):
-        """Test updating values when no stock selected"""
-        # Verifies update doesn't crash when no stocks are selected
+        # Sprawdza czy aktualizacja nie crushuje aplikacji kiedy nie wybrano akcji
         parent = QWidget()
         action_manager.create_action_widgets(parent)
-        # Should not raise error
         action_manager.update_value_labels_by_stock()
 
     @patch('game.action_manager.get_price_change', return_value=1.5)
     def test_update_value_labels_by_stock_with_stock(self, mock_price, action_manager, qapp):
-        """Test updating values with selected stock"""
-        # Tests value calculation based on stock price multiplier
+        # Test aktualizacji wartości akcji bazując na mnożniku akcji
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         action_manager.selected_actions[0] = "AAPL"
@@ -565,84 +519,73 @@ class TestActionManagerUpdateMethods:
 
 
 # ============================================================================
-# ActionWidget Tests (40 tests)
+# Testy Action Widgets
 # ============================================================================
 
+# Testy inicjalizacji ActionWidgets
 class TestActionWidgetInitialization:
-    """Test ActionWidget initialization"""
 
     def test_initial_quantity_zero(self, qapp):
-        """Test widget starts with zero quantity"""
-        # Verifies that ActionWidget starts with quantity of 0
+        # Sprawdza czy Na początku jest 0 widgetów
         parent = QWidget()
         widget = ActionWidget(parent)
         assert widget.quantity == 0
 
     def test_allow_click_true_initially(self, qapp):
-        """Test allow_click is True initially"""
-        # Checks that click interactions are enabled by default
+        # Sprawdza czy domyślnie funkcjonalność onclick widgetów działają
         parent = QWidget()
         widget = ActionWidget(parent)
         assert widget.allow_click is True
 
     def test_has_image_label(self, qapp):
-        """Test widget has image label"""
-        # Ensures widget has an image_label component for displaying stock logo
+        # Sprawdza czy widget ma pole na obraz
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'image_label')
 
     def test_has_minus_button(self, qapp):
-        """Test widget has minus button"""
-        # Verifies widget has a minus button for decreasing investment
+        # Sprawdza czy widget ma guzik zmniejszania wartości
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'minus_btn')
 
     def test_has_plus_button(self, qapp):
-        """Test widget has plus button"""
-        # Checks widget has a plus button for increasing investment
+        # Sprawdza czy widget ma guzik zwiększania wartości
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'plus_btn')
 
     def test_has_value_label(self, qapp):
-        """Test widget has value label"""
-        # Ensures widget has a value_label to display current investment amount
+        # Sprawdza czy widget ma licznik przechowujący wartość
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'value_label')
 
     def test_value_label_shows_zero(self, qapp):
-        """Test value label displays '0' initially"""
-        # Tests that value label displays "0" initially
+        # Czy początkowa wartość akcji jest równa 0
         parent = QWidget()
         widget = ActionWidget(parent)
         assert widget.value_label.text() == "0"
 
     def test_player_manager_reference(self, qapp):
-        """Test player_manager reference is stored"""
-        # Verifies that PlayerManager reference is stored correctly
+        # Czy odnośnik do playerManager jest poprawnie zapisywany
         parent = QWidget()
         pm = PlayerManager()
         widget = ActionWidget(parent, player_manager=pm)
         assert widget.player_manager is pm
 
     def test_balance_label_reference(self, qapp):
-        """Test balance_label reference is stored"""
-        # Checks that balance_label reference is stored for updates
+        # Sprawdza czy widget posiada balance_label
         parent = QWidget()
         balance_label = QLabel()
         widget = ActionWidget(parent, balance_label=balance_label)
         assert widget.balance_label is balance_label
 
-
+# --- testowanie funkcji zwiększania wartości akcji ---
 class TestActionWidgetIncreaseValue:
-    """Test increase value functionality"""
 
     def test_increase_value_insufficient_balance(self, qapp):
-        """Test increase doesn't work with insufficient balance"""
-        # Tests that increase is blocked when player balance < 100
+        # Sprawdzanie czy zwiększanie wartości jest blokowane kiedy fundusze gracza są mniejsze niż 100
         parent = QWidget()
         pm = PlayerManager()
         pm.set_player_balance(50)
@@ -651,8 +594,7 @@ class TestActionWidgetIncreaseValue:
         assert widget.quantity == 0
 
     def test_increase_value_sufficient_balance(self, qapp):
-        """Test increase works with sufficient balance"""
-        # Verifies quantity increases by 100 when sufficient balance exists
+        # Sprawdzanie czy zwiększanie wartości dzaiła kiedy gracz posiada ponad 100
         parent = QWidget()
         pm = PlayerManager()
         pm.set_player_balance(500)
@@ -662,8 +604,7 @@ class TestActionWidgetIncreaseValue:
         assert widget.quantity == 100
 
     def test_increase_value_updates_balance(self, qapp):
-        """Test increase updates player balance"""
-        # Checks that player balance decreases by 100 after increase
+        # Sprawdzanie czy fundusz gracza spada o 100 po zwiększeniu
         parent = QWidget()
         pm = PlayerManager()
         pm.set_player_balance(500)
@@ -673,7 +614,6 @@ class TestActionWidgetIncreaseValue:
         assert pm.get_player_balance() == 400
 
     def test_increase_value_updates_label(self, qapp):
-        """Test increase updates value label"""
         # Ensures value label updates to show new quantity
         parent = QWidget()
         pm = PlayerManager()
