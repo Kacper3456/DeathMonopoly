@@ -394,11 +394,11 @@ class GamePage(QWidget):
         loading.close()
 
     def start_game(self):
+        player_data = self.player_manager.get_player_data()
+        
+        # Sprawdź czy wszystkie akcje wybrane
         if not self.action_manager.all_actions_selected():
-            # Nie wszystkie akcje wybrane - pokaż komunikat
             missing = self.action_manager.get_missing_count()
-            player_data = self.player_manager.get_player_data()
-
             warning_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
             warning_text += f"<span style='color: rgb(255, 100, 100); font-size: 22px;'>You need to select all 6 actions before starting, ma-a-n!</span><br><br>"
             warning_text += f"Missing: {missing} action{'s' if missing > 1 else ''}"
@@ -406,38 +406,62 @@ class GamePage(QWidget):
             self.dialogText.setText(warning_text)
             self.DialogBox.verticalScrollBar().setValue(0)
 
-            # Pokaż awatar gracza
             pixmap = self.avatar_image.pixmap()
             if pixmap is not None and not pixmap.isNull():
-                scaled_pixmap = self.avatar_image.scaled(
+                scaled_pixmap = pixmap.scaled(
                     self.avatar_image.width(), self.avatar_image.height(),
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
                 self.avatar_image.setPixmap(scaled_pixmap)
-        else:
-            self.game_started = True
-            self.unspent_money = self.player_manager.get_player_balance()
-            self.main_window.settings_page.disable_difficulty_buttons()
-            self.turn_counter = 0
-            for widget in self.action_manager.action_widgets:
-                widget.hide_controls()
-            self.update_turn_display()
+            return
+        
+        # Sprawdź czy wszystkie akcje mają zainwestowane pieniądze
+        zero_investment_actions = []
+        for i, widget in enumerate(self.action_manager.action_widgets):
+            if widget.quantity == 0:
+                action_name = self.action_manager.selected_actions[i]
+                zero_investment_actions.append(action_name)
+        
+        if zero_investment_actions:
+            warning_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+            warning_text += f"<span style='color: rgb(255, 100, 100); font-size: 22px;'>You must invest at least $100 in each action!</span><br><br>"
+            warning_text += f"Actions with $0 investment: <b>{', '.join(zero_investment_actions)}</b>"
 
-            # Ukryj Random i Start, pokaż Continue
-            self.btn_random.hide()
-            self.btn_start.hide()
-            self.btn_continue.show()
-
-            # Pokaż komunikat o rozpoczęciu gry
-            player_data = self.player_manager.get_player_data()
-            start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-            start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun! The first turn is finished.</span><br><br>"
-            start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
-
-
-            self.dialogText.setText(start_text)
+            self.dialogText.setText(warning_text)
             self.DialogBox.verticalScrollBar().setValue(0)
+
+            pixmap = self.avatar_image.pixmap()
+            if pixmap is not None and not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(
+                    self.avatar_image.width(), self.avatar_image.height(),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+                self.avatar_image.setPixmap(scaled_pixmap)
+            return
+        
+        # Jeśli wszystko OK - rozpocznij grę
+        self.game_started = True
+        self.unspent_money = self.player_manager.get_player_balance()
+        self.main_window.settings_page.disable_difficulty_buttons()
+        self.turn_counter = 0
+        for widget in self.action_manager.action_widgets:
+            widget.hide_controls()
+        self.update_turn_display()
+
+        # Ukryj Random i Start, pokaż Continue
+        self.btn_random.hide()
+        self.btn_start.hide()
+        self.btn_continue.show()
+
+        # Pokaż komunikat o rozpoczęciu gry
+        start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
+        start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
+        start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
+
+        self.dialogText.setText(start_text)
+        self.DialogBox.verticalScrollBar().setValue(0)
 
     def continue_game(self):
         # Zwiększ licznik tur
