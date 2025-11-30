@@ -2,11 +2,11 @@ from PySide6.QtWidgets import QWidget, QLabel, QGroupBox, QScrollArea, QPushButt
     QApplication
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Signal, Qt
-from npc_manager import NPCManager
-from player_manager import PlayerManager
-from action_manager import ActionManager
+from game.npc_manager import NPCManager
+from game.player_manager import PlayerManager
+from game.action_manager import ActionManager
 from game_over_dialog import GameOverDialog
-from stock_data import get_data, get_data_chart, clear_stock_files
+from game.stock_data import get_data, get_data_chart, clear_stock_files
 
 
 class LoadingDialog(QDialog):

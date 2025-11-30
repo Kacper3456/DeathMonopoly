@@ -4,3 +4,4 @@ dotenv
 yfinance
 matplotlib
 pytest
+pytest-qt
