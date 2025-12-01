@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QLabel, QMenu
 from PySide6.QtGui import QPixmap, QAction
 from PySide6.QtCore import Signal, Qt, QPoint
 import random
-from game.stock_data import get_price_change
+from Game_code.stock_data import get_price_change
 
 class ClickableLabel(QLabel):
     clicked = Signal()

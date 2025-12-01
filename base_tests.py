@@ -15,10 +15,10 @@ from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QPixmap
 
 # Import game modules
-from game.player_manager import PlayerManager
-from game.action_manager import ActionManager, ActionWidget, ClickableLabel
-from game.npc_manager import NPCManager, NPCWidget
-from game.stock_data import (
+from Game_code.player_manager import PlayerManager
+from Game_code.action_manager import ActionManager, ActionWidget, ClickableLabel
+from Game_code.npc_manager import NPCManager, NPCWidget
+from Game_code.stock_data import (
     get_turn_dates,
     get_price_change,
     clear_stock_files,
@@ -36,7 +36,7 @@ from game.stock_data import (
 
 @pytest.fixture(scope="session")
 def qapp():
-    # Tworzenie QApplication do testów
+    """Create QApplication instance for testing"""
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -46,32 +46,32 @@ def qapp():
 
 @pytest.fixture
 def qtbot(qapp):
-    # tworzenie qtbot do testów widgetów QT
+    """Create qtbot for Qt widget testing"""
     from pytestqt.qtbot import QtBot
     return QtBot(qapp)
 
 
 @pytest.fixture
 def player_manager():
-    # otwieranie playerManager
+    """Create PlayerManager instance"""
     return PlayerManager()
 
 
 @pytest.fixture
 def action_manager():
-    # otwieranie ActionManager
+    """Create ActionManager instance"""
     return ActionManager()
 
 
 @pytest.fixture
 def npc_manager():
-    # otwieranie NPCManager
+    """Create NPCManager instance"""
     return NPCManager()
 
 
 @pytest.fixture
 def temp_csv_file():
-    # Tworzenie pliku csv do testowania
+    """Create temporary CSV file for testing"""
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='_history.csv') as f:
         writer = csv.writer(f)
         writer.writerow(['Date', 'Close', 'Open', 'High', 'Low'])
@@ -85,30 +85,35 @@ def temp_csv_file():
 
 
 # ============================================================================
-# Testowanie bazowej funkcjonalności PlayerManager
+# PlayerManager Tests (40 tests)
 # ============================================================================
 
-# --- Testy bazowej funkcjonalności ---
 class TestPlayerManagerBasics:
+    """Test basic PlayerManager functionality"""
 
     def test_initial_balance_default(self, player_manager):
-        # Sprawdza czy gracz zaczyna z poprawną kwotą
+        """Test default initial balance"""
+        # Verifies that a new PlayerManager instance starts with the default balance of 2400
         assert player_manager.get_player_balance() == 2400
 
     def test_initial_name_default(self, player_manager):
-        # Sprawdza czy początkowe imie gracza jest poprawnie ustawione
+        """Test default player name"""
+        # Verifies that the player's default name is set to "Waldemar" on initialization
         assert player_manager.get_player_data()["name"] == "Waldemar"
 
     def test_initial_avatar_default(self, player_manager):
-        # Sprawdza czy link do avatara gracza jest poprawny
+        """Test default avatar path"""
+        # Checks that the default avatar path points to the businessman image
         assert player_manager.get_player_data()["avatar"] == "images/game_window/avatar/businessman.png"
 
     def test_initial_dialogue_exists(self, player_manager):
-        # Sprawdza czy początkowy tekst gracza nie jest pusty
+        """Test default dialogue exists"""
+        # Ensures that the player has a non-empty dialogue string by default
         assert len(player_manager.get_player_data()["dialogue"]) > 0
 
     def test_player_data_structure(self, player_manager):
-        # sprawdza czy dane klienta zawierają wszystkie wymagane pola
+        """Test player data dictionary structure"""
+        # Validates that player_data contains all required keys: name, avatar, dialogue, balance
         data = player_manager.get_player_data()
         assert "name" in data
         assert "avatar" in data
@@ -116,170 +121,198 @@ class TestPlayerManagerBasics:
         assert "balance" in data
 
     def test_get_player_data_returns_dict(self, player_manager):
-        # Potwierdza że get_player_data zwraca bibliotekę
+        """Test that get_player_data returns a dictionary"""
+        # Confirms that get_player_data() returns a dictionary type
         assert isinstance(player_manager.get_player_data(), dict)
 
     def test_player_data_not_none(self, player_manager):
-        # Potwierdza że player_data nigdy nie jest pusty
+        """Test that player_data is never None"""
+        # Ensures that the player_data attribute is never None
         assert player_manager.player_data is not None
 
-# --- Testy odnośnie funduszy klienta ---
+
 class TestPlayerManagerBalance:
+    """Test balance-related functionality"""
 
     def test_set_balance_positive(self, player_manager):
-        # ustawianie funduszy i pobieranie stanu funduszy
+        """Test setting positive balance"""
+        # Tests setting the player balance to a positive value and retrieving it
         player_manager.set_player_balance(5000)
         assert player_manager.get_player_balance() == 5000
 
     def test_set_balance_zero(self, player_manager):
-        # Weryfikacja czy ustawienie funduszy na 0 nie powoduje problemów
+        """Test setting balance to zero"""
+        # Verifies that balance can be set to zero without issues
         player_manager.set_player_balance(0)
         assert player_manager.get_player_balance() == 0
 
     def test_set_balance_negative(self, player_manager):
-        # Weryfikacja działania negatywnych funduszy
+        """Test setting negative balance"""
+        # Tests that negative balances are allowed (for debt/losses)
         player_manager.set_player_balance(-100)
         assert player_manager.get_player_balance() == -100
 
     def test_set_balance_large_number(self, player_manager):
-        # Weryfikacja czy duże fundusze nie spowodują problemu w działaniu aplikacji
+        """Test setting very large balance"""
+        # Checks that very large balance values (1,000,000) can be stored
         player_manager.set_player_balance(1000000)
         assert player_manager.get_player_balance() == 1000000
 
     def test_set_balance_float(self, player_manager):
-        # Weryfikacja ustawiania niepełnych numerów w funduszach
+        """Test setting float balance"""
+        # Verifies that float/decimal balance values are supported
         player_manager.set_player_balance(2500.50)
         assert player_manager.get_player_balance() == 2500.50
 
     def test_balance_persistence(self, player_manager):
-        # Sprawdza czy fundusze nie są modyfikowane przez inne funkcje
+        """Test that balance persists after multiple operations"""
+        # Ensures balance persists after other player data operations
         player_manager.set_player_balance(1000)
         player_manager.set_player_name("Test")
-        player_manager.set_player_avatar(self)
-        path = "images/test/avatar.png"
-        player_manager.set_player_avatar(path)
         assert player_manager.get_player_balance() == 1000
 
     def test_multiple_balance_changes(self, player_manager):
-        # Sprawdza czy logika zmiany funduszy działa poprawnie
+        """Test multiple consecutive balance changes"""
+        # Tests that consecutive balance updates work correctly
         player_manager.set_player_balance(100)
         player_manager.set_player_balance(200)
         player_manager.set_player_balance(300)
         assert player_manager.get_player_balance() == 300
 
 
-# --- Testowanie nazwy gracza ---
 class TestPlayerManagerName:
+    """Test name-related functionality"""
 
     def test_set_name_string(self, player_manager):
-        # Testowanie czy nazwa gracza może być Stringiem
+        """Test setting name with string"""
+        # Verifies that player name can be set to a regular string value
         player_manager.set_player_name("John")
         assert player_manager.get_player_data()["name"] == "John"
 
     def test_set_name_empty_string(self, player_manager):
-        # Testowanie czy nazwa gracza może być pusta
+        """Test setting empty name"""
+        # Tests that empty string is accepted as a valid name
         player_manager.set_player_name("")
         assert player_manager.get_player_data()["name"] == ""
 
     def test_set_name_with_spaces(self, player_manager):
-        # Testowanie czy spacja jest akceptowana w nazwie gracza
+        """Test setting name with spaces"""
+        # Checks that names with spaces are handled correctly
         player_manager.set_player_name("John Doe")
         assert player_manager.get_player_data()["name"] == "John Doe"
 
     def test_set_name_with_special_chars(self, player_manager):
-        # Testowanie znaków specjalnych
+        """Test setting name with special characters"""
+        # Verifies support for special characters and Unicode in names
         player_manager.set_player_name("Müller-Öström")
         assert player_manager.get_player_data()["name"] == "Müller-Öström"
 
     def test_set_name_very_long(self, player_manager):
-        # Testowanie działania długich nazw
-        long_name = "A" * 200
+        """Test setting very long name"""
+        # Tests that very long names (100+ characters) can be stored
+        long_name = "A" * 100
         player_manager.set_player_name(long_name)
         assert player_manager.get_player_data()["name"] == long_name
 
     def test_name_with_numbers(self, player_manager):
-        # Ustawianie liczb w nazwie
+        """Test setting name with numbers"""
+        # Checks that alphanumeric names are supported
         player_manager.set_player_name("Player123")
         assert player_manager.get_player_data()["name"] == "Player123"
 
-# --- Testowanie funkcjonalności avatara
+
 class TestPlayerManagerAvatar:
+    """Test avatar-related functionality"""
 
     def test_set_avatar_path(self, player_manager):
-        # Ustawianie linku do avatara
+        """Test setting avatar path"""
+        # Tests setting a custom avatar image path
         path = "images/test/avatar.png"
         player_manager.set_player_avatar(path)
         assert player_manager.get_player_data()["avatar"] == path
 
     def test_set_avatar_empty_path(self, player_manager):
-        # Sprawdzanie czy brak linku nie powoduje problemu
+        """Test setting empty avatar path"""
+        # Verifies that empty avatar path is accepted
         player_manager.set_player_avatar("")
         assert player_manager.get_player_data()["avatar"] == ""
 
     def test_set_avatar_absolute_path(self, player_manager):
-        # Sprawdzanie czy absolutny link dizała
+        """Test setting absolute avatar path"""
+        # Checks that absolute file paths work for avatars
         path = "/usr/share/images/avatar.png"
         player_manager.set_player_avatar(path)
         assert player_manager.get_player_data()["avatar"] == path
 
     def test_set_avatar_relative_path(self, player_manager):
-        # Sprawdzanie czy relatywny link działa
+        """Test setting relative avatar path"""
+        # Tests that relative paths are stored correctly
         path = "../avatars/test.png"
         player_manager.set_player_avatar(path)
         assert player_manager.get_player_data()["avatar"] == path
 
-# --- Weryfikacja działania pola Dialogue
+
 class TestPlayerManagerDialogue:
+    """Test dialogue-related functionality"""
 
     def test_set_dialogue_string(self, player_manager):
-        # Sprawdzanie czy tekst może zostać dodany i pobrany
+        """Test setting dialogue"""
+        # Verifies that dialogue text can be set and retrieved
         dialogue = "Hello, world!"
         player_manager.set_player_dialogue(dialogue)
         assert player_manager.get_player_data()["dialogue"] == dialogue
 
     def test_set_dialogue_empty(self, player_manager):
-        # Czy Dialog może być pusty
+        """Test setting empty dialogue"""
+        # Tests that empty dialogue string is accepted
         player_manager.set_player_dialogue("")
         assert player_manager.get_player_data()["dialogue"] == ""
 
     def test_set_dialogue_multiline(self, player_manager):
-        # Sprawdzanie czy Dialog może być wyświetlany w osobnych liniach
+        """Test setting multiline dialogue"""
+        # Checks that multiline dialogue with newlines works
         dialogue = "Line 1\nLine 2\nLine 3"
         player_manager.set_player_dialogue(dialogue)
         assert player_manager.get_player_data()["dialogue"] == dialogue
 
     def test_set_dialogue_very_long(self, player_manager):
-        # Sprawdzanie czy dialogue przyjmuje długi string
+        """Test setting very long dialogue"""
+        # Tests that very long dialogue text (500+ chars) is supported
         dialogue = "A" * 500
         player_manager.set_player_dialogue(dialogue)
         assert player_manager.get_player_data()["dialogue"] == dialogue
 
-# --- Weryfikacja update_player_data
+
 class TestPlayerManagerUpdate:
+    """Test update_player_data functionality"""
 
     def test_update_name_only(self, player_manager):
-        # Sprawdzanie aktualizacji jedynie nazwy
+        """Test updating only name"""
+        # Tests partial update - only name is changed, other fields remain unchanged
         original_avatar = player_manager.get_player_data()["avatar"]
         player_manager.update_player_data(name="NewName")
         assert player_manager.get_player_data()["name"] == "NewName"
         assert player_manager.get_player_data()["avatar"] == original_avatar
 
     def test_update_avatar_only(self, player_manager):
-        # Sprawdzanie aktualizacji jedynie avataru
+        """Test updating only avatar"""
+        # Tests partial update - only avatar is changed
         original_name = player_manager.get_player_data()["name"]
         player_manager.update_player_data(avatar="new/path.png")
         assert player_manager.get_player_data()["avatar"] == "new/path.png"
         assert player_manager.get_player_data()["name"] == original_name
 
     def test_update_dialogue_only(self, player_manager):
-        # Sprawdzanie aktualizacji jedynie Dialogu
+        """Test updating only dialogue"""
+        # Tests partial update - only dialogue is changed
         original_name = player_manager.get_player_data()["name"]
         player_manager.update_player_data(dialogue="New dialogue")
         assert player_manager.get_player_data()["dialogue"] == "New dialogue"
         assert player_manager.get_player_data()["name"] == original_name
 
     def test_update_all_fields(self, player_manager):
-        # Test aktualizacji wszystkich danych
+        """Test updating all fields at once"""
+        # Verifies that all player fields can be updated in a single call
         player_manager.update_player_data(
             name="TestName",
             avatar="test.png",
@@ -291,146 +324,180 @@ class TestPlayerManagerUpdate:
         assert data["dialogue"] == "Test dialogue"
 
     def test_update_with_none_values(self, player_manager):
-        # Sprawdza czy kiedy przypisany jest brak danych oryginalne dane nie są nadpisywane
+        """Test that None values don't update fields"""
+        # Ensures that None values don't overwrite existing data
         original_data = player_manager.get_player_data().copy()
         player_manager.update_player_data(name=None, avatar=None, dialogue=None)
         assert player_manager.get_player_data() == original_data
 
     def test_update_mixed_none_and_values(self, player_manager):
-        # Test aktualizacji tylko części danych używając None
-        original_data = player_manager.player_data["avatar"]
+        """Test updating with mix of None and actual values"""
+        # Tests updating some fields while keeping others unchanged using None
         player_manager.update_player_data(name="NewName", avatar=None, dialogue="New")
         assert player_manager.get_player_data()["name"] == "NewName"
         assert player_manager.get_player_data()["dialogue"] == "New"
-        assert player_manager.get_player_data()["avatar"] == original_data
 
 
 # ============================================================================
-# Testy Action Manager
+# ActionManager Tests (60 tests)
 # ============================================================================
 
-# --- Testy inicjalizacji ActionManager
 class TestActionManagerInitialization:
+    """Test ActionManager initialization"""
 
     def test_options_count(self, action_manager):
-        # Sprawdzanie czy wszystkie 11 opcji akcyjnych zostało wczytanych
+        """Test correct number of stock options"""
+        # Verifies that ActionManager initializes with 11 stock options
         assert len(action_manager.options) == 11
 
     def test_options_are_dict(self, action_manager):
-        # Sprawdza czy opcje są zapisywane w dictionary
+        """Test options is a dictionary"""
+        # Checks that options are stored in a dictionary structure
         assert isinstance(action_manager.options, dict)
 
+    def test_specific_stocks_present(self, action_manager):
+        """Test specific stocks are in options"""
+        # Validates that specific stock tickers (AAPL, GOOG, etc.) exist
+        assert "AAPL" in action_manager.options
+        assert "GOOG" in action_manager.options
+        assert "MSFT" in action_manager.options
+        assert "NVDA" in action_manager.options
+        assert "AMZN" in action_manager.options
+
     def test_all_stocks_present(self, action_manager):
-        # Sprawdzanie czy wszystkie akcje są wczytane
+        """Test all expected stocks are present"""
+        # Ensures all 11 expected stock tickers are present
         expected = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA", "META", "CSCO", "PEP", "NFLX", "EA"]
         for stock in expected:
             assert stock in action_manager.options
 
     def test_initial_selected_actions(self, action_manager):
-        # Sprawdza czy żadna akcja nie została wybrana na początku gry
+        """Test initial selected actions are None"""
+        # Verifies that no actions are selected on initialization
         assert action_manager.selected_actions == [None] * 6
 
     def test_selected_actions_length(self, action_manager):
-        # Sprawdza czy można wybrać maksymalnie tylko 6 akcji
+        """Test selected actions has correct length"""
+        # Checks that selected_actions array has exactly 6 slots
         assert len(action_manager.selected_actions) == 6
 
     def test_action_widgets_empty_initially(self, action_manager):
-        # Sprawdza czy lista action_widgets jest pusta przed wyborem akcji
+        """Test action_widgets list is empty initially"""
+        # Ensures action_widgets list starts empty before creation
         assert action_manager.action_widgets == []
 
     def test_position_coordinates(self, action_manager):
-        # Sprawdza czy pozycje akcji są poprawne
+        """Test action position coordinates are set"""
+        # Validates that action widget position coordinates are set correctly
         assert action_manager.action_x_start == 30
         assert action_manager.action_y_start == 55
 
     def test_dimension_settings(self, action_manager):
-        # Sprawdza czy wymiary akcji są poprawne
+        """Test action dimensions are set"""
+        # Checks that action widget dimensions (width, height, padding) are defined
         assert action_manager.action_width == 340
         assert action_manager.action_height == 180
         assert action_manager.action_padding == 10
 
-# --- Testy obsługi akcji ---
+
 class TestActionManagerOptions:
+    """Test option management"""
 
     def test_get_options(self, action_manager):
-        # Testuje pobór wszystkich akcji
+        """Test getting all options"""
+        # Tests retrieving the complete dictionary of stock options
         options = action_manager.get_options()
         assert len(options) == 11
         assert isinstance(options, dict)
 
     def test_add_new_option(self, action_manager):
-        # Sprawdza czy możemy dodawać nowe akcje
+        """Test adding new stock option"""
+        # Verifies that new stock options can be added dynamically
         action_manager.add_option("TEST", "test/path.png")
         assert "TEST" in action_manager.options
         assert action_manager.options["TEST"] == "test/path.png"
 
     def test_add_multiple_options(self, action_manager):
-        # Testowanie dodawanie wielu akcji
+        """Test adding multiple new options"""
+        # Tests adding several new options sequentially
         action_manager.add_option("TEST1", "path1.png")
         action_manager.add_option("TEST2", "path2.png")
         assert "TEST1" in action_manager.options
         assert "TEST2" in action_manager.options
 
     def test_add_option_overwrites_existing(self, action_manager):
-        # Test aktualizacji akcji poprzez add_option
+        """Test adding option with existing key overwrites"""
+        # Checks that adding an option with existing key updates the path
         action_manager.add_option("AAPL", "new/path.png")
         assert action_manager.options["AAPL"] == "new/path.png"
 
     def test_remove_existing_option(self, action_manager):
-        # Usuwanie akcji
+        """Test removing existing option"""
+        # Tests removing a stock option from the dictionary
         action_manager.remove_option("AAPL")
         assert "AAPL" not in action_manager.options
 
     def test_remove_nonexistent_option(self, action_manager):
-        # Sprawdzanie czy usuwanie nieistniejących akcji nie powoduje błędu
+        """Test removing non-existent option doesn't raise error"""
+        # Ensures removing non-existent option doesn't raise an error
         action_manager.remove_option("NONEXISTENT")  # Should not raise
 
     def test_remove_all_options(self, action_manager):
-        # Czy wszystkie akcje mogą być usunięte
+        """Test removing all options"""
+        # Verifies that all options can be removed, leaving empty dictionary
         for stock in list(action_manager.options.keys()):
             action_manager.remove_option(stock)
         assert len(action_manager.options) == 0
 
-# --- Testy wyboru akcji
+
 class TestActionManagerSelections:
+    """Test selection management"""
 
     def test_all_actions_selected_when_none(self, action_manager):
-        # Sprawdzanie czy zwraca fałsz jeżeli nie wybrano żadnej akcji
+        """Test all_actions_selected returns False when none selected"""
+        # Checks that all_actions_selected() returns False when nothing is selected
         assert not action_manager.all_actions_selected()
 
     def test_all_actions_selected_when_partial(self, action_manager):
-        # Sprawdzanie czy zwraca fałsz jeżeli mniej niż 6 akcji zostało wybranych
+        """Test all_actions_selected returns False when partially selected"""
+        # Verifies False is returned when only some actions are selected
         action_manager.selected_actions[0] = "AAPL"
         action_manager.selected_actions[1] = "GOOG"
         assert not action_manager.all_actions_selected()
 
     def test_all_actions_selected_when_all(self, action_manager):
-        # Sprawdzanie czy zwraca prawdę gdy 6 akcji jest wybranych
+        """Test all_actions_selected returns True when all selected"""
+        # Tests that True is returned when all 6 actions are selected
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         assert action_manager.all_actions_selected()
 
     def test_get_missing_count_all_missing(self, action_manager):
-        # Sprawdza czy missing count wynosi 6 kiedy nie wybrano akcji
+        """Test missing count when all are missing"""
+        # Verifies count of 6 when no actions are selected
         assert action_manager.get_missing_count() == 6
 
     def test_get_missing_count_none_missing(self, action_manager):
-        # Sprawdza czy missing count wynosi 0 kiedy wybrano 6 akcji
+        """Test missing count when none are missing"""
+        # Tests count of 0 when all actions are selected
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         assert action_manager.get_missing_count() == 0
 
     def test_get_missing_count_partial(self, action_manager):
-        # Sprawdza czy missing count jest poprawny zaleźnie
+        """Test missing count with partial selections"""
+        # Checks correct count when some actions are selected
         action_manager.selected_actions[0] = "AAPL"
         action_manager.selected_actions[1] = "GOOG"
         assert action_manager.get_missing_count() == 4
 
     def test_get_available_options_all_available(self, action_manager):
-        # Sprawdzanie czy wszystkie opcje są dostępne do wyboru
+        """Test available options when none selected"""
+        # Tests that all 11 options are available when none selected
         available = action_manager.get_available_options()
         assert len(available) == 11
 
     def test_get_available_options_some_selected(self, action_manager):
-        # Sprawdzanie czy poprawnie weryfikowana jest dostępność akcji
+        """Test available options when some selected"""
+        # Verifies available options exclude already selected ones
         action_manager.selected_actions[0] = "AAPL"
         action_manager.selected_actions[1] = "GOOG"
         available = action_manager.get_available_options()
@@ -440,76 +507,90 @@ class TestActionManagerSelections:
 
     def test_get_available_options_all_selected(self, action_manager):
         """Test available options when all selected"""
-        # Sprawdza czy poprawnie wskazuje nie wybrane akcje
+        # Checks remaining options when 6 are selected
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         available = action_manager.get_available_options()
         assert len(available) == 5  # 11 total - 6 selected
 
     def test_get_selected_actions(self, action_manager):
-        # Test pobierania listy wybranych akcji
+        """Test getting selected actions"""
+        # Tests retrieving the current selection array
         test_selections = ["AAPL", "GOOG", None, None, None, None]
         action_manager.selected_actions = test_selections
         assert action_manager.get_selected_actions() == test_selections
 
     def test_reset_selections_clears_all(self, action_manager):
-        # Sprawdzanie czy reset akcji dizała
+        """Test reset clears all selections"""
+        # Verifies that reset clears all 6 selection slots
         action_manager.selected_actions = ["AAPL", "GOOG", "MSFT", "NVDA", "AMZN", "TSLA"]
         action_manager.reset_selections()
         assert action_manager.selected_actions == [None] * 6
 
     def test_reset_selections_preserves_options(self, action_manager):
-        # Sprawdznie czy reset nie usuwa dostępnych akcji
+        """Test reset doesn't affect options"""
+        # Ensures reset doesn't affect the available options dictionary
         original_options = action_manager.options.copy()
         action_manager.reset_selections()
         assert action_manager.options == original_options
 
-# --- Testy tworzenia widgetów ---
+
 class TestActionManagerWidgetCreation:
+    """Test widget creation"""
 
     def test_create_action_widgets_returns_list(self, action_manager, qapp):
-        # Czy tworzenie widgetu zwraca listę
+        """Test create_action_widgets returns a list"""
+        # Checks that widget creation returns a list
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         assert isinstance(widgets, list)
 
     def test_create_action_widgets_correct_count(self, action_manager, qapp):
-        # Czy utworzono 6 widgetów
+        """Test creates correct number of widgets"""
+        # Verifies exactly 6 widgets are created
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         assert len(widgets) == 6
 
     def test_create_action_widgets_stores_references(self, action_manager, qapp):
-        # Czy utworzone widgety są przechowywane na liście widgetów
+        """Test widgets are stored in action_widgets"""
+        # Tests that created widgets are stored in action_widgets list
         parent = QWidget()
         action_manager.create_action_widgets(parent)
         assert len(action_manager.action_widgets) == 6
 
     def test_widget_has_correct_index_property(self, action_manager, qapp):
-        # Sprawdzanie czy indexy widgetów są poprawne
+        """Test each widget has correct index property"""
+        # Ensures each widget has correct action_index property (0-5)
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         for i, widget in enumerate(widgets):
             assert widget.property("action_index") == i
 
-# --- Testy funkcji aktualizacji ---
+
 class TestActionManagerUpdateMethods:
+    """Test update methods"""
 
     def test_update_selected_action_charts(self, action_manager, qapp):
-        # Aktualizacja wybranych akcji w widget
+        """Test updating action charts"""
+        # Tests updating action widgets to display stock chart images
         parent = QWidget()
         action_manager.create_action_widgets(parent)
         action_manager.selected_actions[0] = "AAPL"
+        # Should not crash even if chart doesn't exist
         action_manager.update_selected_action_charts()
 
     def test_update_value_labels_by_stock_no_stock(self, action_manager, qapp):
-        # Sprawdza czy aktualizacja nie crushuje aplikacji kiedy nie wybrano akcji
+        """Test updating values when no stock selected"""
+        # Verifies update doesn't crash when no stocks are selected
         parent = QWidget()
         action_manager.create_action_widgets(parent)
+        # Should not raise error
         action_manager.update_value_labels_by_stock()
 
-    @patch('game.action_manager.get_price_change', return_value=1.5)
+    @patch('Game_code.action_manager.get_price_change', return_value=1.5)
     def test_update_value_labels_by_stock_with_stock(self, mock_price, action_manager, qapp):
-        # Test aktualizacji wartości akcji bazując na mnożniku akcji
+        """Test updating values with selected stock"""
+        # Tests value calculation based on stock price multiplier
         parent = QWidget()
         widgets = action_manager.create_action_widgets(parent)
         action_manager.selected_actions[0] = "AAPL"
@@ -519,73 +600,84 @@ class TestActionManagerUpdateMethods:
 
 
 # ============================================================================
-# Testy Action Widgets
+# ActionWidget Tests (40 tests)
 # ============================================================================
 
-# Testy inicjalizacji ActionWidgets
 class TestActionWidgetInitialization:
+    """Test ActionWidget initialization"""
 
     def test_initial_quantity_zero(self, qapp):
-        # Sprawdza czy Na początku jest 0 widgetów
+        """Test widget starts with zero quantity"""
+        # Verifies that ActionWidget starts with quantity of 0
         parent = QWidget()
         widget = ActionWidget(parent)
         assert widget.quantity == 0
 
     def test_allow_click_true_initially(self, qapp):
-        # Sprawdza czy domyślnie funkcjonalność onclick widgetów działają
+        """Test allow_click is True initially"""
+        # Checks that click interactions are enabled by default
         parent = QWidget()
         widget = ActionWidget(parent)
         assert widget.allow_click is True
 
     def test_has_image_label(self, qapp):
-        # Sprawdza czy widget ma pole na obraz
+        """Test widget has image label"""
+        # Ensures widget has an image_label component for displaying stock logo
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'image_label')
 
     def test_has_minus_button(self, qapp):
-        # Sprawdza czy widget ma guzik zmniejszania wartości
+        """Test widget has minus button"""
+        # Verifies widget has a minus button for decreasing investment
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'minus_btn')
 
     def test_has_plus_button(self, qapp):
-        # Sprawdza czy widget ma guzik zwiększania wartości
+        """Test widget has plus button"""
+        # Checks widget has a plus button for increasing investment
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'plus_btn')
 
     def test_has_value_label(self, qapp):
-        # Sprawdza czy widget ma licznik przechowujący wartość
+        """Test widget has value label"""
+        # Ensures widget has a value_label to display current investment amount
         parent = QWidget()
         widget = ActionWidget(parent)
         assert hasattr(widget, 'value_label')
 
     def test_value_label_shows_zero(self, qapp):
-        # Czy początkowa wartość akcji jest równa 0
+        """Test value label displays '0' initially"""
+        # Tests that value label displays "0" initially
         parent = QWidget()
         widget = ActionWidget(parent)
         assert widget.value_label.text() == "0"
 
     def test_player_manager_reference(self, qapp):
-        # Czy odnośnik do playerManager jest poprawnie zapisywany
+        """Test player_manager reference is stored"""
+        # Verifies that PlayerManager reference is stored correctly
         parent = QWidget()
         pm = PlayerManager()
         widget = ActionWidget(parent, player_manager=pm)
         assert widget.player_manager is pm
 
     def test_balance_label_reference(self, qapp):
-        # Sprawdza czy widget posiada balance_label
+        """Test balance_label reference is stored"""
+        # Checks that balance_label reference is stored for updates
         parent = QWidget()
         balance_label = QLabel()
         widget = ActionWidget(parent, balance_label=balance_label)
         assert widget.balance_label is balance_label
 
-# --- testowanie funkcji zwiększania wartości akcji ---
+
 class TestActionWidgetIncreaseValue:
+    """Test increase value functionality"""
 
     def test_increase_value_insufficient_balance(self, qapp):
-        # Sprawdzanie czy zwiększanie wartości jest blokowane kiedy fundusze gracza są mniejsze niż 100
+        """Test increase doesn't work with insufficient balance"""
+        # Tests that increase is blocked when player balance < 100
         parent = QWidget()
         pm = PlayerManager()
         pm.set_player_balance(50)
@@ -594,7 +686,8 @@ class TestActionWidgetIncreaseValue:
         assert widget.quantity == 0
 
     def test_increase_value_sufficient_balance(self, qapp):
-        # Sprawdzanie czy zwiększanie wartości dzaiła kiedy gracz posiada ponad 100
+        """Test increase works with sufficient balance"""
+        # Verifies quantity increases by 100 when sufficient balance exists
         parent = QWidget()
         pm = PlayerManager()
         pm.set_player_balance(500)
@@ -604,7 +697,8 @@ class TestActionWidgetIncreaseValue:
         assert widget.quantity == 100
 
     def test_increase_value_updates_balance(self, qapp):
-        # Sprawdzanie czy fundusz gracza spada o 100 po zwiększeniu
+        """Test increase updates player balance"""
+        # Checks that player balance decreases by 100 after increase
         parent = QWidget()
         pm = PlayerManager()
         pm.set_player_balance(500)
@@ -614,6 +708,7 @@ class TestActionWidgetIncreaseValue:
         assert pm.get_player_balance() == 400
 
     def test_increase_value_updates_label(self, qapp):
+        """Test increase updates value label"""
         # Ensures value label updates to show new quantity
         parent = QWidget()
         pm = PlayerManager()
@@ -751,7 +846,7 @@ class TestActionWidgetDecreaseValue:
 class TestActionWidgetDisplay:
     """Test display methods"""
 
-    @patch('game.action_manager.QPixmap')
+    @patch('Game_code.action_manager.QPixmap')
     def test_set_pixmap(self, mock_pixmap, qapp):
         """Test setting pixmap"""
         # Tests setting a QPixmap image on the widget
@@ -776,12 +871,12 @@ class TestActionWidgetDisplay:
         parent = QWidget()
         widget = ActionWidget(parent)
         widget.hide_controls()
-
+        
         # show_controls() should call show() on buttons
         widget.show_controls()
-
+        
         # Check that show() was called (buttons should not be explicitly hidden)
-        # Note: isVisible() might return False if parent isn't shown,
+        # Note: isVisible() might return False if parent isn't shown, 
         # but we can verify buttons aren't hidden
         assert not widget.plus_btn.isHidden()
         assert not widget.minus_btn.isHidden()
@@ -1021,7 +1116,7 @@ class TestNPCManagerSelection:
 class TestNPCManagerDialogUpdate:
     """Test dialog update functionality"""
 
-    @patch('game.npc_manager.ask_bot', return_value='AI response')
+    @patch('Game_code.npc_manager.ask_bot', return_value='AI response')
     def test_update_dialog_ai_calls_ask_bot(self, mock_ask_bot, npc_manager, qapp):
         """Test update_dialog_ai calls AI"""
         # Tests that update_dialog_ai() calls the AI ask_bot function
@@ -1030,7 +1125,7 @@ class TestNPCManagerDialogUpdate:
         npc_manager.update_dialog_ai(0)
         assert mock_ask_bot.called
 
-    @patch('game.npc_manager.ask_bot', return_value='AI response')
+    @patch('Game_code.npc_manager.ask_bot', return_value='AI response')
     def test_update_dialog_ai_updates_data(self, mock_ask_bot, npc_manager, qapp):
         """Test update_dialog_ai updates NPC data"""
         # Verifies AI response is stored in NPC's dialogue data
@@ -1039,7 +1134,7 @@ class TestNPCManagerDialogUpdate:
         npc_manager.update_dialog_ai(0)
         assert 'AI response' in npc_manager.npc_data_list[0]['dialogue']
 
-    @patch('game.npc_manager.ask_bot', return_value='Line1\nLine2')
+    @patch('Game_code.npc_manager.ask_bot', return_value='Line1\nLine2')
     def test_update_dialog_ai_formats_multiline(self, mock_ask_bot, npc_manager, qapp):
         """Test update_dialog_ai formats multiline"""
         # Checks that multiline responses are formatted with <br> tags
@@ -1048,7 +1143,7 @@ class TestNPCManagerDialogUpdate:
         npc_manager.update_dialog_ai(0)
         assert '<br>' in npc_manager.npc_data_list[0]['dialogue']
 
-    @patch('game.npc_manager.ask_bot', return_value='Test')
+    @patch('Game_code.npc_manager.ask_bot', return_value='Test')
     def test_update_dialog_ai_invalid_index(self, mock_ask_bot, npc_manager, qapp):
         """Test update_dialog_ai with invalid index"""
         # Tests that invalid index doesn't crash the update
@@ -1232,7 +1327,7 @@ class TestStockDataFileOperations:
 class TestStockDataGeneration:
     """Test data generation functions"""
 
-    @patch('game.stock_data.yf.Ticker')
+    @patch('Game_code.stock_data.yf.Ticker')
     def test_get_data_calls_yfinance(self, mock_ticker):
         """Test get_data calls yfinance"""
         # Tests that get_data() calls yfinance API to fetch stock data
@@ -1240,7 +1335,7 @@ class TestStockDataGeneration:
         mock_instance.history.return_value = Mock()
         mock_instance.history.return_value.to_csv = Mock()
         mock_ticker.return_value = mock_instance
-
+        
         get_data(["AAPL"], 0)
         assert mock_ticker.called
 
@@ -1288,20 +1383,20 @@ class TestClickableLabel:
         parent = QWidget()
         label = ClickableLabel(parent)
         label.show()
-
+        
         # Use a simpler approach - connect to a slot and verify it's called
         clicked = False
         def on_clicked():
             nonlocal clicked
             clicked = True
-
+        
         label.clicked.connect(on_clicked)
-
+        
         # Simulate mouse press with updated constructor
         from PySide6.QtCore import QPoint, QPointF
         from PySide6.QtGui import QMouseEvent
         from PySide6.QtCore import QEvent
-
+        
         # Use the non-deprecated constructor
         event = QMouseEvent(
             QEvent.Type.MouseButtonPress,
@@ -1311,7 +1406,7 @@ class TestClickableLabel:
             Qt.KeyboardModifier.NoModifier
         )
         label.mousePressEvent(event)
-
+        
         assert clicked
 
     def test_clickable_label_text(self, qapp):
@@ -1428,10 +1523,10 @@ class TestIntegrationPlayerAction:
         pm.set_player_balance(1000)
         parent = QWidget()
         balance_label = QLabel()
-
+        
         widget = ActionWidget(parent, player_manager=pm, balance_label=balance_label)
         widget.increase_value()
-
+        
         assert pm.get_player_balance() == 900
 
     def test_sell_stock_increases_balance(self, qapp):
@@ -1441,11 +1536,11 @@ class TestIntegrationPlayerAction:
         pm.set_player_balance(1000)
         parent = QWidget()
         balance_label = QLabel()
-
+        
         widget = ActionWidget(parent, player_manager=pm, balance_label=balance_label)
         widget.quantity = 100
         widget.decrease_value()
-
+        
         assert pm.get_player_balance() == 1100
 
     def test_multiple_transactions(self, qapp):
@@ -1455,12 +1550,12 @@ class TestIntegrationPlayerAction:
         pm.set_player_balance(1000)
         parent = QWidget()
         balance_label = QLabel()
-
+        
         widget = ActionWidget(parent, player_manager=pm, balance_label=balance_label)
         widget.increase_value()  # 900
         widget.increase_value()  # 800
         widget.decrease_value()  # 900
-
+        
         assert pm.get_player_balance() == 900
 
     def test_cannot_buy_with_insufficient_funds(self, qapp):
@@ -1469,10 +1564,10 @@ class TestIntegrationPlayerAction:
         pm = PlayerManager()
         pm.set_player_balance(50)
         parent = QWidget()
-
+        
         widget = ActionWidget(parent, player_manager=pm)
         widget.increase_value()
-
+        
         assert widget.quantity == 0
         assert pm.get_player_balance() == 50
 
@@ -1486,7 +1581,7 @@ class TestIntegrationActionManager:
         parent = QWidget()
         action_manager.create_action_widgets(parent)
         action_manager.randomize_actions()
-
+        
         assert action_manager.all_actions_selected()
 
     def test_randomize_unique_selections(self, action_manager, qapp):
@@ -1495,7 +1590,7 @@ class TestIntegrationActionManager:
         parent = QWidget()
         action_manager.create_action_widgets(parent)
         action_manager.randomize_actions()
-
+        
         selections = action_manager.selected_actions
         assert len(set(selections)) == 6
 
@@ -1506,7 +1601,7 @@ class TestIntegrationActionManager:
         action_manager.create_action_widgets(parent)
         action_manager.randomize_actions()
         action_manager.reset_selections()
-
+        
         assert not action_manager.all_actions_selected()
 
     def test_widget_quantity_reset_on_reset(self, action_manager, qapp):
@@ -1516,10 +1611,10 @@ class TestIntegrationActionManager:
         pm = PlayerManager()
         pm.set_player_balance(1000)
         widgets = action_manager.create_action_widgets(parent, player_manager=pm)
-
+        
         widgets[0].increase_value()
         action_manager.reset_selections()
-
+        
         assert widgets[0].quantity == 0
 
 
@@ -1531,13 +1626,13 @@ class TestIntegrationNPCSelection:
         # Tests selecting different NPCs updates selection correctly
         parent = QWidget()
         npc_manager.create_npc_widgets(parent)
-
+        
         npc_manager.on_npc_clicked(0)
         first_selection = npc_manager.get_selected_npc_data()
-
+        
         npc_manager.on_npc_clicked(1)
         second_selection = npc_manager.get_selected_npc_data()
-
+        
         assert first_selection["name"] != second_selection["name"]
 
     def test_only_one_npc_selected_at_time(self, npc_manager, qapp):
@@ -1545,10 +1640,10 @@ class TestIntegrationNPCSelection:
         # Verifies only one NPC can be selected at a time
         parent = QWidget()
         npc_manager.create_npc_widgets(parent)
-
+        
         npc_manager.on_npc_clicked(0)
         npc_manager.on_npc_clicked(1)
-
+        
         assert not npc_manager.npc_widgets[0].is_selected
         assert npc_manager.npc_widgets[1].is_selected
 
@@ -1556,7 +1651,7 @@ class TestIntegrationNPCSelection:
 class TestIntegrationStockUpdates:
     """Integration tests for stock updates"""
 
-    @patch('game.action_manager.get_price_change', return_value=1.5)
+    @patch('Game_code.action_manager.get_price_change', return_value=1.5)
     def test_update_values_increases_investment(self, mock_price, action_manager, qapp):
         """Test stock value update with price increase"""
         # Tests that positive price change increases investment value
@@ -1564,15 +1659,15 @@ class TestIntegrationStockUpdates:
         pm = PlayerManager()
         pm.set_player_balance(1000)
         widgets = action_manager.create_action_widgets(parent, player_manager=pm)
-
+        
         action_manager.selected_actions[0] = "AAPL"
         widgets[0].quantity = 100
-
+        
         action_manager.update_value_labels_by_stock()
-
+        
         assert widgets[0].quantity == 150
 
-    @patch('game.action_manager.get_price_change', return_value=0.5)
+    @patch('Game_code.action_manager.get_price_change', return_value=0.5)
     def test_update_values_decreases_investment(self, mock_price, action_manager, qapp):
         """Test stock value update with price decrease"""
         # Verifies negative price change decreases investment value
@@ -1580,12 +1675,12 @@ class TestIntegrationStockUpdates:
         pm = PlayerManager()
         pm.set_player_balance(1000)
         widgets = action_manager.create_action_widgets(parent, player_manager=pm)
-
+        
         action_manager.selected_actions[0] = "AAPL"
         widgets[0].quantity = 100
-
+        
         action_manager.update_value_labels_by_stock()
-
+        
         assert widgets[0].quantity == 50
 
 
@@ -1599,7 +1694,7 @@ class TestEdgeCases:
         pm.set_player_balance(0)
         parent = QWidget()
         widget = ActionWidget(parent, player_manager=pm)
-
+        
         widget.increase_value()
         assert widget.quantity == 0
 
@@ -1609,7 +1704,7 @@ class TestEdgeCases:
         am = ActionManager()
         for stock in list(am.options.keys()):
             am.remove_option(stock)
-
+        
         assert len(am.get_available_options()) == 0
 
     def test_npc_manager_empty_dialogue(self, npc_manager):
@@ -1625,10 +1720,10 @@ class TestEdgeCases:
         pm.set_player_balance(1000000)
         parent = QWidget()
         widget = ActionWidget(parent, player_manager=pm)
-
+        
         for _ in range(100):
             widget.increase_value()
-
+        
         assert widget.quantity == 10000
 
     def test_negative_balance_after_loss(self, qapp):

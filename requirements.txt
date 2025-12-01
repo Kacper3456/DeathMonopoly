@@ -1,7 +1,0 @@
-PySide6
-openai
-dotenv
-yfinance
-matplotlib
-pytest
-pytest-qt
