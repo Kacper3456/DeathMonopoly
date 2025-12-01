@@ -1,15 +1,3 @@
-"""
-Advanced Integration Tests for Stock Trading Game
-Run with: pytest advanced_tests.py -v
-
-These tests cover complex scenarios including:
-- Full game workflows
-- AI dialogue generation and storage
-- Multi-component interactions
-- End-to-end game scenarios
-- Error handling in complex situations
-"""
-
 import pytest
 import os
 import csv
@@ -37,7 +25,6 @@ from Game_code.AI import ask_bot, personalities
 
 @pytest.fixture(scope="session")
 def qapp():
-    """Create QApplication instance for testing"""
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -47,7 +34,6 @@ def qapp():
 
 @pytest.fixture
 def game_setup(qapp):
-    """Setup a complete game environment"""
     player_manager = PlayerManager()
     action_manager = ActionManager()
     npc_manager = NPCManager()
@@ -69,7 +55,6 @@ def game_setup(qapp):
 
 @pytest.fixture
 def mock_stock_data():
-    """Create mock stock CSV files"""
     csv_dir = tempfile.mkdtemp()
 
     # Create sample stock data
@@ -102,7 +87,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.AI.OpenAI')
     def test_ask_bot_returns_string(self, mock_openai):
-        """Test that ask_bot returns a string response"""
         # Verifies ask_bot function returns string type from AI
         mock_response = Mock()
         mock_response.output_text = "This is a test response"
@@ -116,7 +100,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.AI.OpenAI')
     def test_ask_bot_uses_correct_personality(self, mock_openai):
-        """Test that ask_bot uses the correct NPC personality"""
         # Ensures correct personality system message is sent to AI
         mock_response = Mock()
         mock_response.output_text = "Response"
@@ -137,7 +120,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.AI.OpenAI')
     def test_ask_bot_fallback_personality(self, mock_openai):
-        """Test that ask_bot falls back to Wario for unknown personality"""
         # Verifies fallback to default personality when invalid name provided
         mock_response = Mock()
         mock_response.output_text = "Response"
@@ -155,7 +137,6 @@ class TestAIDialogueGeneration:
     @patch('os.listdir')
     @patch('os.path.exists')
     def test_ask_bot_reads_stock_files(self, mock_exists, mock_listdir, mock_openai):
-        """Test that ask_bot reads stock CSV files"""
         # Tests that ask_bot scans Stock_prizes folder for CSV files
         mock_exists.return_value = True
         mock_listdir.return_value = ['AAPL_history.csv', 'GOOG_history.csv']
@@ -180,7 +161,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.AI.OpenAI')
     def test_ask_bot_includes_custom_question(self, mock_openai):
-        """Test that custom question is included in prompt"""
         # Verifies custom question text is passed to AI
         mock_response = Mock()
         mock_response.output_text = "Response"
@@ -201,7 +181,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='AI generated dialogue')
     def test_npc_dialogue_update_stores_response(self, mock_ask_bot, qapp):
-        """Test that AI response is correctly stored in NPC dialogue"""
         # Verifies AI-generated dialogue is stored in correct NPC's data
         npc_manager = NPCManager()
         parent = QWidget()
@@ -215,7 +194,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='AI generated dialogue')
     def test_npc_dialogue_update_correct_character(self, mock_ask_bot, qapp):
-        """Test that dialogue updates the correct NPC"""
         # Ensures dialogue is stored in the specified NPC, not others
         npc_manager = NPCManager()
         parent = QWidget()
@@ -233,7 +211,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='Line1\nLine2\nLine3')
     def test_npc_dialogue_multiline_formatting(self, mock_ask_bot, qapp):
-        """Test that multiline AI responses are formatted with HTML breaks"""
         # Verifies newlines are converted to <br> tags for display
         npc_manager = NPCManager()
         parent = QWidget()
@@ -248,7 +225,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='Test response')
     def test_npc_dialogue_widget_label_update(self, mock_ask_bot, qapp):
-        """Test that NPC widget label is updated with AI response"""
         # Checks that widget's dialogue_label shows the AI response
         npc_manager = NPCManager()
         parent = QWidget()
@@ -262,7 +238,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='Response')
     def test_npc_dialogue_includes_budget(self, mock_ask_bot, qapp):
-        """Test that budget is included in AI prompt"""
         # Verifies player balance is sent to AI for advice
         npc_manager = NPCManager()
         parent = QWidget()
@@ -276,7 +251,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='Response')
     def test_npc_dialogue_includes_companies(self, mock_ask_bot, qapp):
-        """Test that selected companies are included in AI prompt"""
         # Ensures selected stock tickers are sent to AI
         npc_manager = NPCManager()
         parent = QWidget()
@@ -291,14 +265,12 @@ class TestAIDialogueGeneration:
             assert company in call_args
 
     def test_personalities_dict_has_all_npcs(self):
-        """Test that personalities dictionary contains all NPC names"""
         # Verifies all 5 NPCs have personality definitions
         npc_names = ['BORIS', 'WARIO', 'ALBEDO', 'GERALT', 'JADWIDA']
         for name in npc_names:
             assert name in personalities
 
     def test_personalities_have_system_messages(self):
-        """Test that all personalities have system_message field"""
         # Ensures each personality has AI prompt instructions
         for personality in personalities.values():
             assert 'system_message' in personality
@@ -306,7 +278,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='Short response')
     def test_multiple_npc_dialogue_updates(self, mock_ask_bot, qapp):
-        """Test updating dialogue for multiple NPCs sequentially"""
         # Tests that multiple NPCs can have their dialogue updated
         npc_manager = NPCManager()
         parent = QWidget()
@@ -324,7 +295,6 @@ class TestAIDialogueGeneration:
 
     @patch('Game_code.npc_manager.ask_bot', return_value='')
     def test_npc_dialogue_empty_response(self, mock_ask_bot, qapp):
-        """Test handling of empty AI response"""
         # Verifies system handles empty responses gracefully
         npc_manager = NPCManager()
         parent = QWidget()
@@ -344,7 +314,6 @@ class TestCompleteGameWorkflow:
     """Test complete game scenarios from start to finish"""
 
     def test_initial_game_state(self, game_setup):
-        """Test game initializes in correct state"""
         # Verifies all game components start in expected initial state
         pm = game_setup['player_manager']
         am = game_setup['action_manager']
@@ -355,7 +324,6 @@ class TestCompleteGameWorkflow:
         assert nm.selected_index is None
 
     def test_select_stocks_workflow(self, game_setup):
-        """Test complete stock selection workflow"""
         # Tests player selecting all 6 stocks in sequence
         am = game_setup['action_manager']
 
@@ -366,7 +334,6 @@ class TestCompleteGameWorkflow:
         assert len(set(am.selected_actions)) == 6  # All unique
 
     def test_invest_money_workflow(self, game_setup):
-        """Test investing money in selected stocks"""
         # Tests player spending money on stock investments
         pm = game_setup['player_manager']
         am = game_setup['action_manager']
@@ -382,7 +349,6 @@ class TestCompleteGameWorkflow:
         assert pm.get_player_balance() == initial_balance - 300
 
     def test_full_investment_cycle(self, game_setup):
-        """Test complete buy and sell cycle"""
         # Tests buying stocks, price changes, then selling
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -400,7 +366,6 @@ class TestCompleteGameWorkflow:
         assert pm.get_player_balance() == initial_balance - 100
 
     def test_insufficient_funds_workflow(self, game_setup):
-        """Test player running out of money"""
         # Verifies game prevents spending beyond available balance
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -416,7 +381,6 @@ class TestCompleteGameWorkflow:
         assert pm.get_player_balance() == 50
 
     def test_select_npc_for_advice(self, game_setup):
-        """Test selecting NPC to get advice"""
         # Tests player selecting an NPC character
         nm = game_setup['npc_manager']
 
@@ -426,7 +390,6 @@ class TestCompleteGameWorkflow:
         assert nm.get_selected_npc_data()['name'] == 'BORIS'
 
     def test_switch_npc_selection(self, game_setup):
-        """Test switching between NPCs"""
         # Tests selecting different NPCs in sequence
         nm = game_setup['npc_manager']
 
@@ -441,7 +404,6 @@ class TestCompleteGameWorkflow:
 
     @patch('Game_code.stock_data.get_price_change', return_value=1.5)
     def test_price_increase_updates_investment(self, mock_price, game_setup):
-        """Test stock price increase updates investment value"""
         # Verifies investment value increases when stock price goes up
         am = game_setup['action_manager']
         pm = game_setup['player_manager']
@@ -464,7 +426,6 @@ class TestCompleteGameWorkflow:
 
     @patch('Game_code.stock_data.get_price_change', return_value=0.5)
     def test_price_decrease_updates_investment(self, mock_price, game_setup):
-        """Test stock price decrease updates investment value"""
         # Verifies investment value decreases when stock price goes down
         am = game_setup['action_manager']
         pm = game_setup['player_manager']
@@ -484,7 +445,6 @@ class TestCompleteGameWorkflow:
         assert widgets[0].quantity == 500
 
     def test_reset_game_state(self, game_setup):
-        """Test resetting game to initial state"""
         # Tests reset clears all selections and investments
         pm = game_setup['player_manager']
         am = game_setup['action_manager']
@@ -507,7 +467,6 @@ class TestCompleteGameWorkflow:
         assert nm.selected_index is None
 
     def test_multiple_turns_workflow(self, game_setup):
-        """Test playing multiple turns"""
         # Simulates playing through several game turns
         am = game_setup['action_manager']
 
@@ -520,7 +479,6 @@ class TestCompleteGameWorkflow:
             am.reset_selections()
 
     def test_balance_tracking_across_turns(self, game_setup):
-        """Test balance persists across multiple turns"""
         # Verifies player balance is maintained between turns
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -540,7 +498,6 @@ class TestCompleteGameWorkflow:
         assert pm.get_player_balance() == initial - 300
 
     def test_unspent_money_carried_forward(self, game_setup):
-        """Test unspent money remains in balance"""
         # Ensures money not invested stays available
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -553,7 +510,6 @@ class TestCompleteGameWorkflow:
 
     @patch('Game_code.stock_data.get_price_change', return_value=2.0)
     def test_profit_added_to_balance(self, mock_price, game_setup):
-        """Test that profits are added to player balance"""
         # Verifies gains from stocks increase player balance
         am = game_setup['action_manager']
         pm = game_setup['player_manager']
@@ -573,7 +529,6 @@ class TestCompleteGameWorkflow:
         assert widgets[0].quantity == 200
 
     def test_all_stocks_selected_validation(self, game_setup):
-        """Test validation that all 6 stocks must be selected"""
         # Ensures player must select all stocks before proceeding
         am = game_setup['action_manager']
 
@@ -586,7 +541,6 @@ class TestCompleteGameWorkflow:
         assert am.get_missing_count() == 3
 
     def test_unique_stock_selection_enforcement(self, game_setup):
-        """Test that same stock cannot be selected twice"""
         # Verifies each stock can only be selected once
         am = game_setup['action_manager']
 
@@ -597,7 +551,6 @@ class TestCompleteGameWorkflow:
         assert 'AAPL' not in available
 
     def test_widget_quantity_display_updates(self, game_setup):
-        """Test that widget displays update with quantity changes"""
         # Checks UI labels update when investment amounts change
         widgets = game_setup['action_widgets']
         pm = game_setup['player_manager']
@@ -611,7 +564,6 @@ class TestCompleteGameWorkflow:
         assert widgets[0].value_label.text() == '200'
 
     def test_balance_label_display_updates(self, game_setup):
-        """Test that balance display updates with transactions"""
         # Verifies balance label shows current balance
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -626,7 +578,6 @@ class TestCompleteGameWorkflow:
         assert '900' in balance_label.text() or pm.get_player_balance() == 900
 
     def test_max_investment_per_stock(self, game_setup):
-        """Test player can invest as much as balance allows"""
         # Verifies no artificial limits on investment per stock
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -640,7 +591,6 @@ class TestCompleteGameWorkflow:
         assert widgets[0].quantity == 5000
 
     def test_zero_balance_prevents_investment(self, game_setup):
-        """Test that zero balance blocks all investments"""
         # Ensures player cannot invest with no money
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -664,7 +614,6 @@ class TestStockDataIntegration:
     """Test stock data handling in game context"""
 
     def test_turn_date_progression(self):
-        """Test that dates progress correctly across turns"""
         # Verifies date ranges advance properly through game turns
         turn0_start, turn0_end = get_turn_dates(0)
         turn1_start, turn1_end = get_turn_dates(1)
@@ -674,7 +623,6 @@ class TestStockDataIntegration:
         assert turn1_end > turn0_end
 
     def test_date_ranges_non_overlapping(self):
-        """Test that turn date ranges don't overlap"""
         # Ensures each turn has distinct date range
         dates = [get_turn_dates(i) for i in range(5)]
 
@@ -683,7 +631,6 @@ class TestStockDataIntegration:
 
     @patch('Game_code.stock_data.yf.Ticker')
     def test_get_data_for_multiple_stocks(self, mock_ticker):
-        """Test fetching data for multiple stocks"""
         # Tests downloading data for several stocks at once
         mock_instance = Mock()
         mock_df = Mock()
@@ -697,7 +644,6 @@ class TestStockDataIntegration:
         assert mock_ticker.call_count == 3
 
     def test_price_change_calculation_accuracy(self):
-        """Test price change multiplier calculation"""
         # Verifies accurate calculation of price change ratio
         # This would need actual CSV data
         with patch('builtins.open', mock_open(read_data='Date,Close\n2024-01-01,100\n2024-01-02,120\n')):
@@ -706,7 +652,6 @@ class TestStockDataIntegration:
                 assert result == 1.2
 
     def test_price_change_with_loss(self):
-        """Test price change calculation for losing stocks"""
         # Tests multiplier calculation when stock loses value
         with patch('builtins.open', mock_open(read_data='Date,Close\n2024-01-01,100\n2024-01-02,80\n')):
             with patch('os.path.exists', return_value=True):
@@ -715,7 +660,6 @@ class TestStockDataIntegration:
 
     @patch('Game_code.stock_data.get_price_change')
     def test_apply_price_changes_to_investments(self, mock_price, game_setup):
-        """Test applying price changes to all investments"""
         # Tests updating all 6 stock investments with price changes
         mock_price.side_effect = [1.1, 0.9, 1.2, 1.0, 0.8, 1.5]
 
@@ -739,7 +683,6 @@ class TestStockDataIntegration:
         assert widgets[2].quantity == 120
 
     def test_clear_stock_files_cleanup(self):
-        """Test that stock files are properly cleaned up"""
         # Verifies CSV and chart files are deleted
         with patch('glob.glob') as mock_glob:
             with patch('os.remove') as mock_remove:
@@ -751,7 +694,6 @@ class TestStockDataIntegration:
 
     @patch('Game_code.stock_data.plt')
     def test_chart_generation_for_all_stocks(self, mock_plt, mock_stock_data):
-        """Test generating charts for all selected stocks"""
         # Tests creating visual charts for each stock
         from Game_code.stock_data import generate_all_charts
 
@@ -765,14 +707,12 @@ class TestStockDataIntegration:
                 assert mock_plt.savefig.call_count >= 3
 
     def test_stock_data_persistence_between_turns(self):
-        """Test that stock data persists for next turn"""
         # Ensures stock history is available across turns
         # This is more of a file system test
         pass  # Implementation depends on actual file handling
 
     @patch('Game_code.stock_data.get_price_change')
     def test_mixed_stock_performance(self, mock_price, game_setup):
-        """Test handling mixed winners and losers"""
         # Tests scenario where some stocks gain and some lose
         # Winners and losers
         mock_price.side_effect = [1.5, 0.5, 1.2, 0.8, 1.0, 0.7]
@@ -795,7 +735,6 @@ class TestStockDataIntegration:
         assert widgets[1].quantity < 100  # Loser (0.5x = 50)
 
     def test_stock_selection_variety(self, game_setup):
-        """Test that different stocks can be selected each turn"""
         # Ensures player can choose different stocks each turn
         am = game_setup['action_manager']
 
@@ -812,7 +751,6 @@ class TestStockDataIntegration:
         assert len(set(turn1_selections + turn2_selections)) >= 6
 
     def test_date_format_consistency(self):
-        """Test that all date strings use consistent format"""
         # Verifies YYYY-MM-DD format is used throughout
         for turn in range(10):
             start, end = get_turn_dates(turn)
@@ -821,7 +759,6 @@ class TestStockDataIntegration:
             assert start[7] == '-'
 
     def test_turn_duration_consistency(self):
-        """Test that all turns have consistent duration"""
         # Ensures each turn spans the same number of months
         from datetime import datetime
 
@@ -836,7 +773,6 @@ class TestStockDataIntegration:
 
     @patch('Game_code.stock_data.get_price_change', return_value=1.0)
     def test_no_change_stock_performance(self, mock_price, game_setup):
-        """Test handling of stocks with no price change"""
         # Verifies 1.0 multiplier keeps investment unchanged
         am = game_setup['action_manager']
         widgets = game_setup['action_widgets']
@@ -849,7 +785,6 @@ class TestStockDataIntegration:
         assert widgets[0].quantity == 500
 
     def test_extreme_price_changes(self, game_setup):
-        """Test handling of extreme stock price movements"""
         # Tests very large gains or losses (10x, 0.1x)
         with patch('Game_code.stock_data.get_price_change', return_value=10.0):
             am = game_setup['action_manager']
@@ -876,7 +811,6 @@ class TestErrorHandling:
 
     @patch('Game_code.npc_manager.ask_bot', side_effect=Exception("API Error"))
     def test_ai_api_failure_handling(self, mock_ask_bot, qapp):
-        """Test graceful handling of AI API failures"""
         # Verifies game doesn't crash when AI service fails
         npc_manager = NPCManager()
         parent = QWidget()
@@ -889,13 +823,11 @@ class TestErrorHandling:
             pass  # Expected
 
     def test_invalid_stock_ticker_handling(self, game_setup):
-        """Test handling of invalid stock ticker symbols"""
         # Ensures invalid tickers don't crash price lookup
         result = get_price_change('INVALIDTICKER12345')
         assert result == 1.0  # Should return default
 
     def test_corrupted_csv_file_handling(self):
-        """Test handling of corrupted stock data files"""
         # Verifies graceful handling of malformed CSV
         with patch('builtins.open', mock_open(read_data='Invalid,CSV,Data\n')):
             with patch('os.path.exists', return_value=True):
@@ -906,13 +838,11 @@ class TestErrorHandling:
                     pass  # Expected for truly corrupted data
 
     def test_missing_stock_csv_file(self):
-        """Test handling when stock CSV file is missing"""
         # Tests fallback when expected file doesn't exist
         result = get_price_change('NONEXISTENT')
         assert result == 1.0
 
     def test_widget_interaction_without_managers(self, qapp):
-        """Test widget behavior without manager references"""
         # Verifies widgets handle missing manager references safely
         parent = QWidget()
         widget = ActionWidget(parent)  # No player_manager
@@ -921,7 +851,6 @@ class TestErrorHandling:
         assert widget.quantity == 0
 
     def test_npc_selection_out_of_range(self, game_setup):
-        """Test selecting NPC with invalid index"""
         # Ensures invalid index doesn't crash NPC system
         nm = game_setup['npc_manager']
 
@@ -938,7 +867,6 @@ class TestErrorHandling:
             pass  # Expected for invalid index
 
     def test_negative_investment_prevention(self, game_setup):
-        """Test that negative investments are prevented"""
         # Verifies quantities never go negative
         widgets = game_setup['action_widgets']
 
@@ -948,7 +876,6 @@ class TestErrorHandling:
         assert widgets[0].quantity >= 0
 
     def test_balance_underflow_prevention(self, game_setup):
-        """Test preventing balance from going below zero during purchase"""
         # Ensures player can't spend more than available balance
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -961,7 +888,6 @@ class TestErrorHandling:
         assert pm.get_player_balance() == 50
 
     def test_concurrent_widget_modifications(self, game_setup):
-        """Test handling simultaneous widget value changes"""
         # Tests race condition handling (if applicable)
         widgets = game_setup['action_widgets']
         pm = game_setup['player_manager']
@@ -978,7 +904,6 @@ class TestErrorHandling:
         assert pm.get_player_balance() + total_invested == 1000
 
     def test_empty_stock_selection_list(self, game_setup):
-        """Test behavior with no stocks selected"""
         # Verifies system handles empty selection gracefully
         am = game_setup['action_manager']
 
@@ -987,7 +912,6 @@ class TestErrorHandling:
 
     @patch('Game_code.stock_data.get_price_change', return_value=float('inf'))
     def test_infinite_price_change_handling(self, mock_price, game_setup):
-        """Test handling of infinite price multiplier"""
         # Ensures infinite values don't break calculations
         am = game_setup['action_manager']
         widgets = game_setup['action_widgets']
@@ -1001,7 +925,6 @@ class TestErrorHandling:
             pass  # Expected
 
     def test_null_character_in_dialogue(self, qapp):
-        """Test handling special characters in NPC dialogue"""
         # Verifies special characters don't break display
         npc_manager = NPCManager()
         parent = QWidget()
@@ -1013,7 +936,6 @@ class TestErrorHandling:
         # Should handle gracefully
 
     def test_very_long_dialogue_text(self, qapp):
-        """Test handling extremely long AI responses"""
         # Tests UI handles very long text without breaking
         npc_manager = NPCManager()
         parent = QWidget()
@@ -1026,7 +948,6 @@ class TestErrorHandling:
         # Should not crash
 
     def test_rapid_balance_changes(self, game_setup):
-        """Test system stability with rapid balance updates"""
         # Tests handling many quick transactions
         pm = game_setup['player_manager']
 
@@ -1039,7 +960,6 @@ class TestErrorHandling:
         assert pm.get_player_balance() == 9000
 
     def test_unicode_in_stock_names(self, game_setup):
-        """Test handling Unicode characters in stock identifiers"""
         # Ensures international characters don't break system
         am = game_setup['action_manager']
 
@@ -1057,7 +977,6 @@ class TestPerformance:
     """Test system performance under load"""
 
     def test_many_stock_options_performance(self):
-        """Test performance with many stock options"""
         # Tests system handles large option dictionary
         am = ActionManager()
 
@@ -1068,7 +987,6 @@ class TestPerformance:
         assert len(am.options) == 111  # 11 original + 100 new
 
     def test_many_investment_transactions(self, game_setup):
-        """Test performance with many transactions"""
         # Tests handling hundreds of buy/sell operations
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -1082,7 +1000,6 @@ class TestPerformance:
         assert widgets[0].quantity == 50000
 
     def test_multiple_npc_updates(self, qapp):
-        """Test updating all NPCs multiple times"""
         # Tests repeated AI dialogue updates for all NPCs
         with patch('Game_code.npc_manager.ask_bot', return_value='Response'):
             npc_manager = NPCManager()
@@ -1095,7 +1012,6 @@ class TestPerformance:
                     npc_manager.update_dialog_ai(i)
 
     def test_large_balance_calculations(self, game_setup):
-        """Test calculations with very large balances"""
         # Ensures large numbers don't cause overflow
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -1108,7 +1024,6 @@ class TestPerformance:
         assert pm.get_player_balance() == 999999999 + 100
 
     def test_rapid_stock_selection_changes(self, game_setup):
-        """Test rapidly changing stock selections"""
         # Tests performance of frequent selection updates
         am = game_setup['action_manager']
 
@@ -1117,7 +1032,6 @@ class TestPerformance:
             am.reset_selections()
 
     def test_simultaneous_widget_operations(self, game_setup):
-        """Test operating on all widgets simultaneously"""
         # Tests bulk operations on all 6 action widgets
         pm = game_setup['player_manager']
         widgets = game_setup['action_widgets']
@@ -1131,7 +1045,6 @@ class TestPerformance:
             widget.decrease_value()
 
     def test_many_price_updates(self, game_setup):
-        """Test many consecutive price update calculations"""
         # Tests performance of repeated price change applications
         am = game_setup['action_manager']
         widgets = game_setup['action_widgets']
@@ -1145,7 +1058,6 @@ class TestPerformance:
                 am.update_value_labels_by_stock()
 
     def test_large_csv_file_reading(self):
-        """Test reading very large stock CSV files"""
         # Tests performance with large historical datasets
         large_csv = "Date,Close\n" + "\n".join([f"2024-01-{i:02d},100.{i}" for i in range(1, 32)])
 
@@ -1155,7 +1067,6 @@ class TestPerformance:
                 assert result is not None
 
     def test_memory_cleanup_after_reset(self, game_setup):
-        """Test memory is properly released after game reset"""
         # Verifies no memory leaks after reset operations
         am = game_setup['action_manager']
         widgets = game_setup['action_widgets']
@@ -1174,7 +1085,6 @@ class TestPerformance:
         assert am.selected_actions == [None] * 6
 
     def test_widget_creation_destruction_cycle(self, qapp):
-        """Test creating and destroying widgets repeatedly"""
         # Tests widget lifecycle management
         for _ in range(10):
             parent = QWidget()
