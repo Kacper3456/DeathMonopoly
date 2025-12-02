@@ -118,7 +118,7 @@ class SettingsPage(QWidget):
         self.music_slider.setValue(80)
         apply_slider_style(self.music_slider)
         self.music_slider.setFocusPolicy(Qt.StrongFocus)
-        
+        self.music_slider.valueChanged.connect(lambda v: self.main_window.music.set_volume(v))
         
         # zmieniający się procent głosności, ale mi się nie podoba czcionka
         # self.music_value_label = QLabel("80%", self)
