@@ -264,7 +264,7 @@ class ActionManager:
         """Zamienia obrazki wybranych akcji na wygenerowane wykresy."""
         for i, choice in enumerate(self.selected_actions):
             if choice:
-                chart_path = f"Stock_charts/{choice}_chart.png"
+                chart_path = f"game/Stock_charts/{choice}_chart.png"
                 pixmap = QPixmap(chart_path)
                 if not pixmap.isNull():
                     self.action_widgets[i].image_label.setPixmap(pixmap)

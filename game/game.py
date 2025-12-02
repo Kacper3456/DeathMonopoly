@@ -457,7 +457,7 @@ class GamePage(QWidget):
 
         # Pokaż komunikat o rozpoczęciu gry
         start_text = f"<b style='color: rgb(255, 215, 0); font-size: 30px;'>{player_data['name']}</b><br><br>"
-        start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The game has begun!</span><br><br>"
+        start_text += f"<span style='color: rgb(100, 255, 100); font-size: 22px;'>Great! All actions selected. The first turn is completed.</span><br><br>"
         start_text += f"Selected actions: {', '.join(self.action_manager.get_selected_actions())}"
 
         self.dialogText.setText(start_text)
