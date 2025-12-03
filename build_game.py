@@ -1,8 +1,3 @@
-"""
-Simple Build Script for Stock Market Game (No Dependency Check)
-Use this if build_game.py has issues with dependency detection.
-"""
-
 import os
 import sys
 import subprocess
