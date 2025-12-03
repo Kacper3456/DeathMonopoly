@@ -5,7 +5,7 @@ from PySide6.QtCore import Signal, Qt
 from Game_code.npc_manager import NPCManager
 from Game_code.player_manager import PlayerManager
 from Game_code.action_manager import ActionManager
-from game_over_dialog import GameOverDialog
+from Game_code.game_over_dialog import GameOverDialog
 from Game_code.stock_data import get_data, get_data_chart, clear_stock_files
 
 
