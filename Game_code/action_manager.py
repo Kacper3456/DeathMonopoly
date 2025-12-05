@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QLabel, QMenu
-from PySide6.QtGui import QPixmap, QAction
+from PySide6.QtGui import QPixmap, QAction, QFont
 from PySide6.QtCore import Signal, Qt, QPoint
 import random
 from Game_code.stock_data import get_price_change
@@ -18,6 +18,9 @@ class ActionWidget(QLabel):
 
     def __init__(self, parent=None, player_manager=None, balance_label=None):
         super().__init__(parent)
+
+        # Ensure proper widget attributes for visibility
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         self.player_manager = player_manager  # reference to PlayerManager
         self.balance_label = balance_label  # QLabel to display balance
@@ -51,7 +54,17 @@ class ActionWidget(QLabel):
         self.value_label = QLabel("0", self)
         self.value_label.setGeometry(0, 160, 340, 20)
         self.value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.value_label.setStyleSheet("font-size: 18px;")
+        self.value_label.setFont(QFont("Arial", 14, QFont.Weight.Bold))  # Explicit font
+        self.value_label.setStyleSheet("""
+            font-size: 18px; 
+            font-weight: bold;
+            color: white; 
+            background-color: rgba(0, 0, 0, 180);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            padding: 2px;
+        """)
+        self.value_label.raise_()  # Ensure it's on top
+        self.value_label.show()  # Explicitly show the label
 
     # -----------------------------------
     # Zmiana wartości
@@ -97,10 +110,12 @@ class ActionWidget(QLabel):
     def hide_controls(self):
         self.plus_btn.hide()
         self.minus_btn.hide()
+        self.value_label.show()  # Keep value_label visible
 
     def show_controls(self):
         self.quantity = 0
         self.value_label.setText(str(self.quantity))
+        self.value_label.show()  # Explicitly show value_label
 
         self.plus_btn.show()
         self.minus_btn.show()
@@ -292,3 +307,6 @@ class ActionManager:
             new_value = int(action_widget.quantity * multiplier)
             action_widget.quantity = new_value
             action_widget.value_label.setText(str(new_value))
+            action_widget.value_label.show()  # Ensure it's visible
+            action_widget.value_label.raise_()  # Bring to front
+            action_widget.value_label.update()  # Force repaint
